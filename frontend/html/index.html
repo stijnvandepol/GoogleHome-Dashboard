@@ -16,21 +16,26 @@
 			box-sizing: border-box;
 		}
 
+		html, body {
+			background: #000;
+			height: 100%;
+			overflow: hidden;
+		}
+
 		body {
 			width: 1280px;
 			height: 720px;
-			margin: 0;
-			background: #000;
+			margin: 0 auto;
 			color: #f5f7ff;
 			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-			padding: 32px 44px;
+			padding: 20px 30px;
 		}
 
 		.dashboard {
 			display: flex;
 			flex-direction: column;
 			height: 100%;
-			gap: 26px;
+			gap: 18px;
 		}
 
 		.header {
@@ -38,7 +43,7 @@
 			justify-content: space-between;
 			align-items: flex-end;
 			border-bottom: 2px solid rgba(255,255,255,0.08);
-			padding-bottom: 12px;
+			padding-bottom: 6px;
 		}
 
 		.clock {
@@ -56,24 +61,24 @@
 		.cards {
 			display: grid;
 			grid-template-columns: 420px 1fr;
-			gap: 24px;
+			gap: 18px;
 			flex: 1;
 		}
 
 		.card {
 			background: rgba(255,255,255,0.04);
 			border: 1px solid rgba(255,255,255,0.08);
-			border-radius: 24px;
-			padding: 28px;
+			border-radius: 12px;
+			padding: 22px;
 			backdrop-filter: blur(10px);
 			box-shadow: 0 15px 35px rgba(0,0,0,0.35);
 			height: 100%;
 		}
 
 		.card-title {
-			font-size: 28px;
+			font-size: 26px;
 			font-weight: 500;
-			margin-bottom: 22px;
+			margin-bottom: 16px;
 			display: flex;
 			align-items: center;
 			gap: 12px;
@@ -106,8 +111,8 @@
 		.news-list {
 			display: flex;
 			flex-direction: column;
-			gap: 18px;
-			height: calc(100% - 60px);
+			gap: 14px;
+			height: calc(100% - 44px);
 			overflow: hidden;
 		}
 
@@ -117,7 +122,7 @@
 		}
 
 		.news-headline {
-			font-size: 26px;
+			font-size: 22px;
 			font-weight: 500;
 		}
 
@@ -144,12 +149,12 @@
 
 		<section class="cards">
 			<article class="card" id="weather-card">
-				<div class="card-title">🌤️ Weer</div>
+				<div class="card-title">Weer</div>
 				<div id="weather" class="loading">Weer laden...</div>
 			</article>
 
 			<article class="card">
-				<div class="card-title">📰 Nieuws</div>
+				<div class="card-title">Nieuws</div>
 				<div id="news" class="news-list">
 					<div class="loading">Nieuws laden...</div>
 				</div>
@@ -190,8 +195,8 @@
 						<div class="weather-desc">${desc}</div>
 					</div>
 					<div class="weather-details">
-						💧 Luchtvochtigheid: ${humidity}%<br>
-						💨 Wind: ${wind} km/u
+						Luchtvochtigheid: ${humidity}%<br>
+						Wind: ${wind} km/u
 					</div>
 				`;
 			} catch (err) {
