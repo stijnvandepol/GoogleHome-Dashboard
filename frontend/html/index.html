@@ -171,14 +171,22 @@
 		const LON = 5.9447;
 
 		function updateTime() {
-			const now = new Date();
-			const clock = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-			const date = now.toLocaleDateString('nl-NL', {
-				weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-			});
-			document.getElementById('clock').textContent = clock;
-			document.getElementById('date').textContent = date;
-		}
+    const now = new Date();
+    const clock = now.toLocaleTimeString('nl-NL', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Amsterdam'
+    });
+    const date = now.toLocaleDateString('nl-NL', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'Europe/Amsterdam'
+    });
+    document.getElementById('clock').textContent = clock;
+    document.getElementById('date').textContent = date;
+  }
 
 		async function getWeather() {
 			const el = document.getElementById('weather');
