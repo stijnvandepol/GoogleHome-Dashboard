@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dashboard_frontend
+    ports:
+      - "8080:80"
+    networks:
+      - dashboardnet
+
+  rtsp-server:
+    image: bluenviron/mediamtx:latest
+    container_name: dashboard_rtsp
+    ports:
+      - "8554:8554"
+    networks:
+      - dashboardnet
+
+  pagecaster:
+    image: ghcr.io/rmitchellscott/pagecaster:latest
+    container_name: dashboard_pagecaster
+    depends_on:
+      - frontend
+      - rtsp-server
+    environment:
+      - WEB_URL=http://frontend
+      - AUDIO_SOURCE=silent
+      - RTMP_URL=rtmp://rtsp-server:1935/dashboard
+      - SCREEN_WIDTH=1280
+      - SCREEN_HEIGHT=720
+      - FRAMERATE=15
+    shm_size: "512m"
+    cpus: "0.5"
+    mem_limit: 512m
+    networks:
+      - dashboardnet
+
+networks:
+  dashboardnet:
+    driver: bridge

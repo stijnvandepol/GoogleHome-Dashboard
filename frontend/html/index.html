@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ochtend Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .time-section {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .time {
+            font-size: 120px;
+            font-weight: 200;
+            letter-spacing: -4px;
+            line-height: 1;
+        }
+
+        .date {
+            font-size: 28px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-title {
+            font-size: 18px;
+            color: #999;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .weather-main {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .temp {
+            font-size: 64px;
+            font-weight: 200;
+        }
+
+        .weather-desc {
+            font-size: 24px;
+            color: #ccc;
+        }
+
+        .weather-details {
+            display: flex;
+            gap: 20px;
+            font-size: 16px;
+            color: #999;
+        }
+
+        .news-item {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .news-item:last-child {
+            border-bottom: none;
+        }
+
+        .news-title {
+            font-size: 16px;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .news-source {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .quote {
+            font-size: 22px;
+            font-style: italic;
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        .quote-author {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #666;
+            text-align: right;
+        }
+
+        .loading {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="time-section">
+            <div class="time" id="time">--:--</div>
+            <div class="date" id="date">---</div>
+        </div>
+
+        <div class="info-grid">
+            <div class="card">
+                <div class="card-title">Weer in Eindhoven</div>
+                <div id="weather" class="loading">Weer ophalen...</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Laatste Nieuws</div>
+                <div id="news" class="loading">Nieuws laden...</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Vandaag</div>
+                <div id="today-info"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Quote van de dag</div>
+                <div id="quote" class="loading">Quote laden...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tijd en datum
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('time').textContent = `${hours}:${minutes}`;
+
+            const days = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+            const months = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+            
+            const dayName = days[now.getDay()];
+            const day = now.getDate();
+            const month = months[now.getMonth()];
+            
+            document.getElementById('date').textContent = `${dayName} ${day} ${month}`;
+        }
+
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Weer info
+        async function getWeather() {
+            try {
+                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=51.44&longitude=5.48&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Europe/Amsterdam');
+                const data = await response.json();
+                
+                const weatherCodes = {
+                    0: 'Helder', 1: 'Licht bewolkt', 2: 'Bewolkt', 3: 'Zwaar bewolkt',
+                    45: 'Mistig', 48: 'Mistig', 51: 'Lichte motregen', 53: 'Motregen',
+                    55: 'Zware motregen', 61: 'Lichte regen', 63: 'Regen', 65: 'Hevige regen',
+                    71: 'Lichte sneeuw', 73: 'Sneeuw', 75: 'Zware sneeuw', 95: 'Onweer'
+                };
+                
+                const temp = Math.round(data.current.temperature_2m);
+                const desc = weatherCodes[data.current.weather_code] || 'Onbekend';
+                const humidity = data.current.relative_humidity_2m;
+                const wind = Math.round(data.current.wind_speed_10m);
+                
+                document.getElementById('weather').innerHTML = `
+                    <div class="weather-main">
+                        <div class="temp">${temp}°</div>
+                        <div class="weather-desc">${desc}</div>
+                    </div>
+                    <div class="weather-details">
+                        <span>💧 ${humidity}%</span>
+                        <span>💨 ${wind} km/u</span>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('weather').textContent = 'Weer niet beschikbaar';
+            }
+        }
+
+        // Nieuws
+        async function getNews() {
+            const news = [
+                { title: 'Verkiezingen in Nederland: spanning loopt op', source: 'NOS' },
+                { title: 'Nieuw onderzoek toont klimaatverandering effecten', source: 'NU.nl' },
+                { title: 'Tech bedrijven kondigen AI doorbraken aan', source: 'Tweakers' }
+            ];
+            
+            let html = '';
+            news.forEach(item => {
+                html += `
+                    <div class="news-item">
+                        <div class="news-title">${item.title}</div>
+                        <div class="news-source">${item.source}</div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('news').innerHTML = html;
+        }
+
+        // Vandaag info
+        function getTodayInfo() {
+            const now = new Date();
+            const weekNumber = Math.ceil(((now - new Date(now.getFullYear(), 0, 1)) / 86400000 + 1) / 7);
+            const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+            
+            document.getElementById('today-info').innerHTML = `
+                <div style="font-size: 18px; line-height: 2;">
+                    <div>📅 Week ${weekNumber}</div>
+                    <div>🌍 Dag ${dayOfYear} van het jaar</div>
+                    <div>☀️ Zonsopkomst: 8:12</div>
+                    <div>🌙 Zonsondergang: 16:47</div>
+                </div>
+            `;
+        }
+
+        // Quote
+        const quotes = [
+            { text: "De beste tijd om een boom te planten was 20 jaar geleden. De op een na beste tijd is nu.", author: "Chinees gezegde" },
+            { text: "Succes is niet definitief, falen is niet fataal: het is de moed om door te gaan die telt.", author: "Winston Churchill" },
+            { text: "Het enige wat we moeten vrezen is angst zelf.", author: "Franklin D. Roosevelt" },
+            { text: "Wees de verandering die je in de wereld wilt zien.", author: "Mahatma Gandhi" }
+        ];
+
+        function showQuote() {
+            const quote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('quote').innerHTML = `
+                <div class="quote">"${quote.text}"</div>
+                <div class="quote-author">— ${quote.author}</div>
+            `;
+        }
+
+        // Alles initialiseren
+        getWeather();
+        getNews();
+        getTodayInfo();
+        showQuote();
+
+        // Weer elke 10 minuten updaten
+        setInterval(getWeather, 600000);
+    </script>
+</body>
+</html>
