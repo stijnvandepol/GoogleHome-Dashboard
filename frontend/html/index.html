@@ -28,14 +28,14 @@
 			margin: 0 auto;
 			color: #f5f7ff;
 			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-			padding: 20px 30px;
+			padding: 12px 30px 18px;
 		}
 
 		.dashboard {
 			display: flex;
 			flex-direction: column;
 			height: 100%;
-			gap: 18px;
+			gap: 12px;
 		}
 
 		.header {
@@ -61,7 +61,8 @@
 		.cards {
 			display: grid;
 			grid-template-columns: 420px 1fr;
-			gap: 18px;
+			gap: 15px;
+			align-items: stretch;
 			flex: 1;
 		}
 
@@ -72,7 +73,10 @@
 			padding: 22px;
 			backdrop-filter: blur(10px);
 			box-shadow: 0 15px 35px rgba(0,0,0,0.35);
+			display: flex;
+			flex-direction: column;
 			height: 100%;
+			min-height: 0;
 		}
 
 		.card-title {
@@ -112,7 +116,7 @@
 			display: flex;
 			flex-direction: column;
 			gap: 14px;
-			height: calc(100% - 44px);
+			flex: 1;
 			overflow: hidden;
 		}
 
@@ -223,7 +227,7 @@
 					el.innerHTML = '<div class="loading">Geen nieuws beschikbaar</div>';
 					return;
 				}
-				const items = data.items.slice(0, 6)
+				const items = data.items.slice(0, 4)
 					.map(item => {
 						const date = new Date(item.pubDate);
 						return `
