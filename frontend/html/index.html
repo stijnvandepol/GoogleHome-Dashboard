@@ -17,7 +17,7 @@
 		}
 
 		html, body {
-			background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+			background: #000000;
 			height: 100%;
 			overflow: hidden;
 		}
@@ -356,9 +356,9 @@
 		getNews();
 		getHomeyStatus();
 		setInterval(updateTime, 1000);
-		setInterval(getWeather, 600000); // 10 minuten
+		setInterval(getWeather, 300000); // 5 minuten
 		setInterval(getNews, 600000);
-		setInterval(getHomeyStatus, 60000); // elke minuut Homey data
+		setInterval(getHomeyStatus, 60000);
 	</script>
 </body>
 </html>
