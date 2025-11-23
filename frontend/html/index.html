@@ -1,398 +1,528 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=1280, initial-scale=1.0">
-	<title>TV Dashboard</title>
-	<style>
-		:root {
-			font-size: 16px;
-			color-scheme: dark;
-		}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280, initial-scale=1.0">
+  <title>TV Dashboard</title>
+  <style>
+    :root {
+      font-size: 16px;
+      color-scheme: dark;
+    }
 
-		* {
-			margin: 0;
-			padding: 0;
-			box-sizing: border-box;
-		}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-		html, body {
-			background: #000000;
-			height: 100%;
-			overflow: hidden;
-		}
+    html, body {
+      background: #000000;
+      height: 100%;
+      overflow: hidden;
+    }
 
-		body {
-			width: 1280px;
-			height: 720px;
-			margin: 0 auto;
-			color: #e8e8e8;
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-			padding: 12px 30px 18px;
-		}
+    body {
+      width: 1280px;
+      height: 720px;
+      margin: 0 auto;
+      color: #e8e8e8;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      padding: 12px 30px 18px;
+    }
 
-		.dashboard {
-			display: flex;
-			flex-direction: column;
-			height: 100%;
-			gap: 12px;
-		}
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 12px;
+    }
 
-		.header {
-			display: flex;
-			justify-content: space-between;
-			align-items: flex-end;
-			border-bottom: 1px solid rgba(255,255,255,0.06);
-			padding-bottom: 6px;
-		}
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 6px;
+    }
 
-		.clock {
-			font-size: 96px;
-			font-weight: 200;
-			letter-spacing: 2px;
-			color: #f5f5f5;
-			text-shadow: 0 2px 20px rgba(0,0,0,0.4);
-		}
+    .clock {
+      font-size: 96px;
+      font-weight: 200;
+      letter-spacing: 2px;
+      color: #f5f5f5;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+    }
 
-		.date {
-			font-size: 28px;
-			color: #9a9a9a;
-			text-transform: capitalize;
-			font-weight: 300;
-		}
+    .date {
+      font-size: 28px;
+      color: #9a9a9a;
+      text-transform: capitalize;
+      font-weight: 300;
+    }
 
-		.cards {
-			display: grid;
-			grid-template-columns: 420px 1fr;
-			grid-template-rows: auto 1fr;
-			grid-template-areas:
-				"weather news"
-				"homey news";
-			gap: 15px;
-			flex: 1;
-		}
+    /* Aanwezigheid rechtsboven */
+    .presence {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
 
-		.card {
-			background: linear-gradient(135deg, rgba(40,40,40,0.3) 0%, rgba(25,25,25,0.5) 100%);
-			border: 1px solid rgba(255,255,255,0.08);
-			border-radius: 8px;
-			padding: 22px;
-			backdrop-filter: blur(40px) saturate(150%);
-			box-shadow: 
-				0 8px 32px rgba(0,0,0,0.4),
-				0 2px 8px rgba(0,0,0,0.2),
-				inset 0 1px 1px rgba(255,255,255,0.1),
-				inset 0 -1px 1px rgba(0,0,0,0.1);
-			display: flex;
-			flex-direction: column;
-			height: 100%;
-			min-height: 0;
-			position: relative;
-			overflow: hidden;
-		}
+    .presence-label {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #7a7a7a;
+    }
 
-		.card::before {
-			content: '';
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			height: 1px;
-			background: linear-gradient(90deg, 
-				transparent 0%, 
-				rgba(255,255,255,0.15) 50%, 
-				transparent 100%);
-		}
+    .presence-list {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
 
-		.card::after {
-			content: '';
-			position: absolute;
-			top: 0;
-			left: -50%;
-			width: 200%;
-			height: 100%;
-			background: linear-gradient(120deg, 
-				transparent 0%, 
-				rgba(255,255,255,0.03) 45%, 
-				rgba(255,255,255,0.08) 50%, 
-				rgba(255,255,255,0.03) 55%, 
-				transparent 100%);
-			transform: translateX(-100%);
-			pointer-events: none;
-		}
+    .presence-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 4px 12px rgba(0,0,0,0.5),
+        inset 0 1px 1px rgba(255,255,255,0.2);
+      background: #555;
+    }
 
-		#weather-card { grid-area: weather; }
-		#homey-card { grid-area: homey; }
-		.news-card { grid-area: news; }
+    .presence-initial {
+      font-size: 18px;
+      font-weight: 600;
+      color: #000000;
+    }
 
-		.card-title {
-			font-size: 26px;
-			font-weight: 400;
-			margin-bottom: 16px;
-			display: flex;
-			align-items: center;
-			gap: 12px;
-			color: #b8b8b8;
-			letter-spacing: 0.5px;
-		}
+    .presence-empty {
+      font-size: 16px;
+      color: #6a6a6a;
+      font-weight: 300;
+    }
 
-		.weather-main {
-			display: flex;
-			align-items: baseline;
-			gap: 16px;
-		}
+    .cards {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      grid-template-rows: auto 1fr;
+      grid-template-areas:
+        "weather news"
+        "homey news";
+      gap: 15px;
+      flex: 1;
+    }
 
-		.weather-temp {
-			font-size: 96px;
-			font-weight: 200;
-			color: #f0f0f0;
-			text-shadow: 0 2px 20px rgba(0,0,0,0.3);
-		}
+    .card {
+      background: linear-gradient(135deg, rgba(40,40,40,0.3) 0%, rgba(25,25,25,0.5) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 22px;
+      backdrop-filter: blur(40px) saturate(150%);
+      box-shadow:
+        0 8px 32px rgba(0,0,0,0.4),
+        0 2px 8px rgba(0,0,0,0.2),
+        inset 0 1px 1px rgba(255,255,255,0.1),
+        inset 0 -1px 1px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
 
-		.weather-desc {
-			font-size: 28px;
-			color: #a0a0a0;
-			font-weight: 300;
-		}
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,0.15) 50%,
+        transparent 100%);
+    }
 
-		.weather-details {
-			margin-top: 22px;
-			font-size: 22px;
-			color: #8a8a8a;
-			line-height: 1.6;
-			font-weight: 300;
-		}
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(120deg,
+        transparent 0%,
+        rgba(255,255,255,0.03) 45%,
+        rgba(255,255,255,0.08) 50%,
+        rgba(255,255,255,0.03) 55%,
+        transparent 100%);
+      transform: translateX(-100%);
+      pointer-events: none;
+    }
 
-		.metrics {
-			display: grid;
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			gap: 12px 20px;
-			font-size: 20px;
-			color: #c0c0c0;
-		}
+    #weather-card { grid-area: weather; }
+    #homey-card { grid-area: homey; }
+    .news-card { grid-area: news; }
 
-		.metric-label {
-			font-size: 14px;
-			text-transform: uppercase;
-			letter-spacing: 1.5px;
-			color: #7a7a7a;
-			margin-bottom: 6px;
-			font-weight: 400;
-		}
+    .card-title {
+      font-size: 26px;
+      font-weight: 400;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #b8b8b8;
+      letter-spacing: 0.5px;
+    }
 
-		.metric-value {
-			font-size: 28px;
-			font-weight: 300;
-			color: #d8d8d8;
-		}
+    .weather-main {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
 
-		.news-list {
-			display: flex;
-			flex-direction: column;
-			gap: 14px;
-			flex: 1;
-			overflow: hidden;
-		}
+    .weather-temp {
+      font-size: 96px;
+      font-weight: 200;
+      color: #f0f0f0;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
 
-		.news-item {
-			padding-bottom: 14px;
-			border-bottom: 1px solid rgba(255,255,255,0.05);
-		}
+    .weather-desc {
+      font-size: 28px;
+      color: #a0a0a0;
+      font-weight: 300;
+    }
 
-		.news-headline {
-			font-size: 22px;
-			font-weight: 400;
-			color: #e0e0e0;
-			line-height: 1.4;
-		}
+    .weather-details {
+      margin-top: 22px;
+      font-size: 22px;
+      color: #8a8a8a;
+      line-height: 1.6;
+      font-weight: 300;
+    }
 
-		.news-meta {
-			margin-top: 8px;
-			font-size: 18px;
-			color: #6a6a6a;
-			font-weight: 300;
-		}
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 20px;
+      font-size: 20px;
+      color: #c0c0c0;
+    }
 
-		.loading {
-			font-size: 24px;
-			color: #7a7a7a;
-			font-weight: 300;
-		}
-	</style>
+    .metric-label {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #7a7a7a;
+      margin-bottom: 6px;
+      font-weight: 400;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 300;
+      color: #d8d8d8;
+    }
+
+    .news-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .news-item {
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .news-headline {
+      font-size: 22px;
+      font-weight: 400;
+      color: #e0e0e0;
+      line-height: 1.4;
+    }
+
+    .news-meta {
+      margin-top: 8px;
+      font-size: 18px;
+      color: #6a6a6a;
+      font-weight: 300;
+    }
+
+    .loading {
+      font-size: 24px;
+      color: #7a7a7a;
+      font-weight: 300;
+    }
+  </style>
 </head>
 <body>
-	<main class="dashboard">
-		<header class="header">
-			<div>
-				<div class="clock" id="clock">00:00</div>
-				<div class="date" id="date">l Laadt datum...</div>
-			</div>
-		</header>
+  <main class="dashboard">
+    <header class="header">
+      <div>
+        <div class="clock" id="clock">00:00</div>
+        <div class="date" id="date">Datum laden...</div>
+      </div>
 
-		<section class="cards">
-			<article class="card" id="weather-card">
-				<div class="card-title">Weer</div>
-				<div id="weather" class="loading">Weer laden...</div>
-			</article>
+      <!-- Nieuwe aanwezigheid-hoek rechtsboven -->
+      <div class="presence" id="presence">
+        <div class="presence-label">Thuis</div>
+        <div class="presence-list">
+          <div class="presence-empty">Laden...</div>
+        </div>
+      </div>
+    </header>
 
-			<article class="card" id="homey-card">
-				<div id="homey" class="loading">Thuisdata laden...</div>
-			</article>
+    <section class="cards">
+      <article class="card" id="weather-card">
+        <div class="card-title">Weer</div>
+        <div id="weather" class="loading">Weer laden...</div>
+      </article>
 
-			<article class="card news-card">
-				<div class="card-title">Nieuws</div>
-				<div id="news" class="news-list">
-					<div class="loading">Nieuws laden...</div>
-				</div>
-			</article>
-		</section>
-	</main>
+      <article class="card" id="homey-card">
+        <div id="homey" class="loading">Thuisdata laden...</div>
+      </article>
 
-	<script>
-		const LAT = 51.6467;  // Boxmeer
-		const LON = 5.9447;
-		const HOMEY_API = 'http://192.168.1.21:3000/dashboard';
+      <article class="card news-card">
+        <div class="card-title">Nieuws</div>
+        <div id="news" class="news-list">
+          <div class="loading">Nieuws laden...</div>
+        </div>
+      </article>
+    </section>
+  </main>
 
-		function updateTime() {
-    const now = new Date();
-    const clock = now.toLocaleTimeString('nl-NL', {
+  <script>
+    const LAT = 51.6467;
+    const LON = 5.9447;
+    const HOMEY_API = 'http://192.168.1.21:3000/BaYYjdNFpMdyeqOTRHpbYzLTbRTRgu';
+
+    // Mapping van Homey-velden naar personen + kleur + initiaal
+    const PRESENCE_PERSONS = [
+      { key: 'aanwezigheidstijn',   initial: 'SV', color: '#3b82f6', name: 'Stijn' },
+      { key: 'aanwezigheidbritt',   initial: 'BV', color: '#facc15', name: 'Britt' },
+      { key: 'aanwezigheidrens',    initial: 'RV', color: '#22c55e', name: 'Rens' },
+      { key: 'aanwezigheidsandra',  initial: 'SD', color: '#8b5cf6', name: 'Sandra' },
+      { key: 'aanwezigheidalfredo', initial: 'AV', color: '#ef4444', name: 'Alfredo' }
+    ];
+
+    function updateTime() {
+      const now = new Date();
+      const clock = now.toLocaleTimeString('nl-NL', {
         hour: '2-digit',
         minute: '2-digit',
         timeZone: 'Europe/Amsterdam'
-    });
-    const date = now.toLocaleDateString('nl-NL', {
+      });
+      const date = now.toLocaleDateString('nl-NL', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
         year: 'numeric',
         timeZone: 'Europe/Amsterdam'
-    });
-    document.getElementById('clock').textContent = clock;
-    document.getElementById('date').textContent = date;
-  }
+      });
+      document.getElementById('clock').textContent = clock;
+      document.getElementById('date').textContent = date;
+    }
 
-		async function getWeather() {
-			const el = document.getElementById('weather');
-			try {
-				const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Europe/Amsterdam`;
-				const resp = await fetch(url);
-				const data = await resp.json();
-				const cur = data.current;
-				const temp = Math.round(cur.temperature_2m);
-				const humidity = cur.relative_humidity_2m;
-				const wind = Math.round(cur.wind_speed_10m);
-				const code = cur.weather_code;
-				const desc = interpretWeather(code);
+    function interpretWeather(code) {
+      if (code === 0) return 'Helder';
+      if (code <= 3) return 'Deels bewolkt';
+      if (code <= 55) return 'Lichte regen';
+      if (code <= 67) return 'Regen';
+      if (code <= 77) return 'Sneeuw';
+      if (code <= 82) return 'Zware buien';
+      return 'Onstuimig';
+    }
 
-				el.innerHTML = `
-					<div class="weather-main">
-						<div class="weather-temp">${temp}°</div>
-						<div class="weather-desc">${desc}</div>
-					</div>
-					<div class="weather-details">
-						Luchtvochtigheid: ${humidity}%<br>
-						Wind: ${wind} km/u
-					</div>
-				`;
-			} catch (err) {
-				el.innerHTML = '<div class="loading">Kon weer niet laden</div>';
-			}
-		}
+    async function getWeather() {
+      const el = document.getElementById('weather');
+      try {
+        const url =
+          `https://api.open-meteo.com/v1/forecast` +
+          `?latitude=${LAT}&longitude=${LON}` +
+          `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
+          `&timezone=Europe/Amsterdam`;
 
-		function interpretWeather(code) {
-			if (code === 0) return 'Helder';
-			if (code <= 3) return 'Deels bewolkt';
-			if (code <= 55) return 'Lichte regen';
-			if (code <= 67) return 'Regen';
-			if (code <= 77) return 'Sneeuw';
-			if (code <= 82) return 'Zware buien';
-			return 'Onstuimig';
-		}
+        const resp = await fetch(url);
+        const data = await resp.json();
+        const cur = data.current;
+        if (!cur) throw new Error('Geen current weather data');
 
-		async function getNews() {
-			const el = document.getElementById('news');
-			try {
-				const resp = await fetch('https://api.rss2json.com/v1/api.json?rss_url=http://feeds.nos.nl/nosnieuwsalgemeen');
-				const data = await resp.json();
-				if (!data.items || data.items.length === 0) {
-					el.innerHTML = '<div class="loading">Geen nieuws beschikbaar</div>';
-					return;
-				}
-				const items = data.items.slice(0, 4)
-					.map(item => {
-						const date = new Date(item.pubDate);
-						return `
-							<div class="news-item">
-								<div class="news-headline">${item.title}</div>
-								<div class="news-meta">${timeAgo(date)}</div>
-							</div>`;
-					})
-					.join('');
-				el.innerHTML = `<div class="news-list">${items}</div>`;
-			} catch (err) {
-				el.innerHTML = '<div class="loading">Kon nieuws niet laden</div>';
-			}
-		}
+        const temp = Math.round(cur.temperature_2m);
+        const humidity = cur.relative_humidity_2m;
+        const wind = Math.round(cur.wind_speed_10m);
+        const code = cur.weather_code;
+        const desc = interpretWeather(code);
 
-		async function getHomeyStatus() {
-			const el = document.getElementById('homey');
-			try {
-				const resp = await fetch(HOMEY_API);
-				if (!resp.ok) throw new Error('HTTP ' + resp.status);
-				const payload = await resp.json();
-				const data = payload?.data?.nefit || {};
-				const tBinnen = formatNumber(data.temperatuurbinnen, 1, '°C');
-				const tSet = formatNumber(data.temperatuuringesteld, 1, '°C');
-				const stroom = formatNumber(data.stroomverbruikvandaag, 2, ' kWh');
-				const gas = formatNumber(data.gasverbruikvandaag, 3, ' m³');
-				el.innerHTML = `
-					<div class="metrics">
-						<div>
-							<div class="metric-label">Temp. binnen</div>
-							<div class="metric-value">${tBinnen}</div>
-						</div>
-						<div>
-							<div class="metric-label">Temp. ingesteld</div>
-							<div class="metric-value">${tSet}</div>
-						</div>
-						<div>
-							<div class="metric-label">Stroom vandaag</div>
-							<div class="metric-value">${stroom}</div>
-						</div>
-						<div>
-							<div class="metric-label">Gas vandaag</div>
-							<div class="metric-value">${gas}</div>
-						</div>
-					</div>
-				`;
-			} catch (err) {
-				el.innerHTML = '<div class="loading">Kon Homey data niet laden</div>';
-			}
-		}
+        el.innerHTML = `
+          <div class="weather-main">
+            <div class="weather-temp">${temp}°</div>
+            <div class="weather-desc">${desc}</div>
+          </div>
+          <div class="weather-details">
+            Luchtvochtigheid: ${humidity}%<br>
+            Wind: ${wind} km/u
+          </div>
+        `;
+      } catch (err) {
+        console.error('Weather fetch error', err);
+        el.innerHTML = '<div class="loading">Kon weer niet laden</div>';
+      }
+    }
 
-		function formatNumber(value, decimals, suffix = '') {
-			if (value === undefined || value === null || Number.isNaN(value)) {
-				return '--';
-			}
-			return `${Number(value).toFixed(decimals)}${suffix}`;
-		}
+    function timeAgo(date) {
+      const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+      if (seconds < 60) return 'Zojuist';
+      if (seconds < 3600) return `${Math.floor(seconds / 60)} minuten geleden`;
+      if (seconds < 86400) return `${Math.floor(seconds / 3600)} uur geleden`;
+      return `${Math.floor(seconds / 86400)} dagen geleden`;
+    }
 
-		function timeAgo(date) {
-			const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-			if (seconds < 60) return 'Zojuist';
-			if (seconds < 3600) return `${Math.floor(seconds / 60)} minuten geleden`;
-			if (seconds < 86400) return `${Math.floor(seconds / 3600)} uur geleden`;
-			return `${Math.floor(seconds / 86400)} dagen geleden`;
-		}
+    async function getNews() {
+      const el = document.getElementById('news');
+      try {
+        const resp = await fetch(
+          'https://api.rss2json.com/v1/api.json?rss_url=http://feeds.nos.nl/nosnieuwsalgemeen'
+        );
+        const data = await resp.json();
+        if (!data.items || data.items.length === 0) {
+          el.innerHTML = '<div class="loading">Geen nieuws beschikbaar</div>';
+          return;
+        }
 
-		updateTime();
-		getWeather();
-		getNews();
-		getHomeyStatus();
-		setInterval(updateTime, 1000);
-		setInterval(getWeather, 300000); // 5 minuten
-		setInterval(getNews, 600000);
-		setInterval(getHomeyStatus, 60000); // elke minuut Homey data
-	</script>
+        const items = data.items.slice(0, 4)
+          .map(item => {
+            const date = new Date(item.pubDate);
+            return `
+              <div class="news-item">
+                <div class="news-headline">${item.title}</div>
+                <div class="news-meta">${timeAgo(date)}</div>
+              </div>`;
+          })
+          .join('');
+
+        el.innerHTML = items;
+      } catch (err) {
+        console.error('News fetch error', err);
+        el.innerHTML = '<div class="loading">Kon nieuws niet laden</div>';
+      }
+    }
+
+    function formatNumber(value, decimals, suffix = '') {
+      if (value === undefined || value === null || Number.isNaN(value)) {
+        return '--';
+      }
+      return `${Number(value).toFixed(decimals)}${suffix}`;
+    }
+
+    // Nieuwe functie: aanwezigheid renderen rechtsboven
+    function renderPresence(data) {
+      const el = document.getElementById('presence');
+      if (!el) return;
+
+      const active = PRESENCE_PERSONS.filter(p => data[p.key]);
+
+      if (active.length === 0) {
+        el.innerHTML = `
+          <div class="presence-label">Thuis</div>
+          <div class="presence-list">
+            <div class="presence-empty">Niemand</div>
+          </div>
+        `;
+        return;
+      }
+
+      const icons = active.map(p => `
+        <div class="presence-avatar" title="${p.name}" style="background:${p.color};">
+          <span class="presence-initial">${p.initial}</span>
+        </div>
+      `).join('');
+
+      el.innerHTML = `
+        <div class="presence-label">Thuis</div>
+        <div class="presence-list">
+          ${icons}
+        </div>
+      `;
+    }
+
+    async function getHomeyStatus() {
+      const el = document.getElementById('homey');
+      try {
+        const resp = await fetch(HOMEY_API);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+        const payload = await resp.json();
+        const data = payload?.data?.nefit || {};
+
+        const tBinnen = formatNumber(data.temperatuurbinnen, 1, '°C');
+        const tSet = formatNumber(data.temperatuuringesteld, 1, '°C');
+        const stroom = formatNumber(data.stroomverbruikvandaag, 2, ' kWh');
+        const gas = formatNumber(data.gasverbruikvandaag, 3, ' m³');
+
+        el.innerHTML = `
+          <div class="metrics">
+            <div>
+              <div class="metric-label">Temp. binnen</div>
+              <div class="metric-value">${tBinnen}</div>
+            </div>
+            <div>
+              <div class="metric-label">Temp. ingesteld</div>
+              <div class="metric-value">${tSet}</div>
+            </div>
+            <div>
+              <div class="metric-label">Stroom vandaag</div>
+              <div class="metric-value">${stroom}</div>
+            </div>
+            <div>
+              <div class="metric-label">Gas vandaag</div>
+              <div class="metric-value">${gas}</div>
+            </div>
+          </div>
+        `;
+
+        // Aanwezigheid icoontjes updaten met dezelfde data
+        renderPresence(data);
+
+      } catch (err) {
+        console.error('Homey fetch error', err);
+        el.innerHTML = '<div class="loading">Kon Homey data niet laden</div>';
+
+        // Bij fout: laat aanwezigheid op "Onbekend"
+        const presenceEl = document.getElementById('presence');
+        if (presenceEl) {
+          presenceEl.innerHTML = `
+            <div class="presence-label">Thuis</div>
+            <div class="presence-list">
+              <div class="presence-empty">Onbekend</div>
+            </div>
+          `;
+        }
+      }
+    }
+
+    // Initial load
+    updateTime();
+    getWeather();
+    getNews();
+    getHomeyStatus();
+
+    // Intervals
+    setInterval(updateTime, 1000);
+    setInterval(getWeather, 300000);      // elke 5 minuten
+    setInterval(getNews, 600000);         // elke 10 minuten
+    setInterval(getHomeyStatus, 60000);   // elke minuut
+  </script>
 </body>
 </html>
