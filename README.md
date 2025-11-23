@@ -104,18 +104,3 @@ Logs bekijken:
 docker compose logs -f pagecaster
 docker compose logs -f rtsp-server
 ```
-
-## Toekomst Ideeën
-- Live verkeer via ANWB/TomTom API
-- Automatische Homey endpoint config (zonder code edit)
-- Cachelaag voor RSS/weer om API calls te beperken
-- Auth (basic) voor gevoelige dashboards
-- Dark/Light thema toggle
-- Metrics panel (CPU/Memory van host via Node exporter + Prometheus)
-- Websocket/push updates i.p.v. periodieke polling
-
-## Licentie
-(Voeg hier een licentie toe indien gewenst, bv. MIT.)
-
----
-Vragen of uitbreiden? Open een issue of maak een pull request.
