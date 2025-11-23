@@ -1,6 +1,6 @@
 # GoogleHome Dashboard
 
-Een lichtgewicht dashboard voor weergave van tijd, weer, verkeer en nieuws, bedoeld voor een scherm (bijv. in de keuken) en inzetbaar samen met een stream infrastructuur (RTSP + Pagecaster) voor weergave via andere apparaten.
+Een lichtgewicht HTML-dashboard (tijd, weer, Homey statistieken, nieuws) dat als videostream op Google Home / Nest schermen kan worden afgespeeld. De frontend draait in een browser container, wordt door Pagecaster gerenderd tot een ~3 FPS RTMP/RTSP-stream en kan vervolgens via Scrypted naar Google Home/Chromecast worden gepusht. Ideaal om actuele informatie op je TV te “casten” zonder custom apps.
 
 ## Inhoud
 - Overzicht
@@ -17,7 +17,7 @@ Het project bestaat uit een eenvoudige statische frontend (`frontend/html/index.
 - `rtsp-server` (Mediamtx) voor RTSP/RTMP streaming
 - `pagecaster` voor het renderen van de webpagina naar een stream (bijv. voor casting)
 
-Frontend haalt live weer (Open-Meteo), uptime (Uptime Kuma status page), nieuws (NOS RSS via rss2json) en Nederlandse feestdagen (Nager Date) binnen. Alle gebruikte bronnen zijn gratis en vereisen geen API sleutel.
+Frontend haalt live weer (Open-Meteo), Homey data (temperatuur binnen, setpoint, stroom/gas vandaag), nieuws (NOS RSS via rss2json) en optioneel uptime/feestdagen binnen. Alle gebruikte bronnen zijn gratis/keyless en poll-based, waardoor 1–3 FPS streaming ruim voldoende is.
 
 ## Architectuur & Services
 ```
@@ -27,11 +27,13 @@ Frontend haalt live weer (Open-Meteo), uptime (Uptime Kuma status page), nieuws 
 +------------------+        +-------------------+        +--------------------+
 ```
 
-### docker-compose.yml
+### docker-compose.yml / Streaming pipeline
 Belangrijkste services:
 - `frontend`: bouwt uit `frontend/Dockerfile` en serveert de statische HTML op poort 8080 (intern Nginx/HTTP op 80)
-- `rtsp-server`: Mediamtx image voor RTSP/RTMP (poort 8554)
-- `pagecaster`: Haalt de pagina `http://frontend` op en publiceert video (optioneel voor casting)
+- `pagecaster`: headless chromium dat `http://frontend` opent en de pagina als video rendert (standaard 3 FPS)
+- `rtsp-server`: Mediamtx image dat de RTMP/RTSP stream van pagecaster beschikbaar maakt voor andere systemen (bijv. Scrypted)
+
+In Scrypted voeg je de RTSP stream toe (via `rtsp://<host>:8554/dashboard`), zet ‘Max FPS’ laag (1‑3) en stream door naar een Google Home / Chromecast automation.
 
 ## Snel Starten
 Zorg dat Docker Desktop of Docker Engine + Docker Compose beschikbaar zijn.
@@ -81,21 +83,20 @@ docker compose pull
 ```
 
 ## Configuratie & Variabelen
-`frontend/html/config.example.js` bevat locatie + Uptime Kuma instellingen (geen sleutels nodig). Kopieer naar `config.js` voor lokale overrides.
+`frontend/html/config.example.js` bevat locatie instellingen (en optioneel Uptime Kuma). Voor Homey data staat het endpoint momenteel hardcoded in `index.html` (`HOMEY_API`), maar je kunt dit eenvoudig omzetten naar een config entry.
 
 `pagecaster` env vars in `docker-compose.yml`:
 - `WEB_URL=http://frontend` (interne service naam)
 - `AUDIO_SOURCE=silent`
 - `RTMP_URL=rtmp://rtsp-server:1935/dashboard`
-- `SCREEN_WIDTH=1280`, `SCREEN_HEIGHT=720`, `FRAMERATE=15`
+- `SCREEN_WIDTH=1280`, `SCREEN_HEIGHT=720`, `FRAMERATE=3` (laag gehouden omdat data elke minuut/10 min ververst)
 
 Visuele schaal gehalveerd in `index.html` (640x360) en widgets gestyled met schaduw + gauge voor uptime. Pas `SCREEN_WIDTH`/`SCREEN_HEIGHT` eventueel aan voor lagere output resolutie.
 
-## Troubleshooting
 - Frontend niet bereikbaar op host: controleer poort mapping `8080:80` en firewall.
-- Weer/nieuws/feestdagen leeg: API tijdelijk down of netwerkprobleem; controleer Network tab.
-- Uptime leeg: controleer dat Uptime Kuma status page publiek is en CORS toestaat vanaf dashboard host (anders reverse proxy met CORS headers toevoegen).
+- Weer/nieuws/Homey leeg: API tijdelijk down of netwerkprobleem; controleer Network tab / CORS headers.
 - Pagecaster stream faalt: controleer dat `rtsp-server` draait en RTMP URL klopt.
+- Google Home toont niets: check dat Scrypted de RTSP stream ziet, dat de FPS laag staat en dat je een ‘Restream’ naar de gewenste Chromecast hebt geconfigureerd.
 - Docker compose niet gevonden in runner: installeer actuele Docker versie of gebruik `docker-compose` legacy.
 
 Logs bekijken:
@@ -106,11 +107,12 @@ docker compose logs -f rtsp-server
 
 ## Toekomst Ideeën
 - Live verkeer via ANWB/TomTom API
+- Automatische Homey endpoint config (zonder code edit)
 - Cachelaag voor RSS/weer om API calls te beperken
 - Auth (basic) voor gevoelige dashboards
 - Dark/Light thema toggle
 - Metrics panel (CPU/Memory van host via Node exporter + Prometheus)
-- Websocket live updates i.p.v. periodieke polling
+- Websocket/push updates i.p.v. periodieke polling
 
 ## Licentie
 (Voeg hier een licentie toe indien gewenst, bv. MIT.)
