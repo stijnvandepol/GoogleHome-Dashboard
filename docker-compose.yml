@@ -31,8 +31,8 @@ services:
       - RTMP_URL=rtmp://rtsp-server:1935/dashboard
       - SCREEN_WIDTH=1280
       - SCREEN_HEIGHT=720
-      - FRAMERATE=3
-      - FFMPEG_PRESET=veryfast 
+      - FRAMERATE=5
+      - FFMPEG_PRESET=veryfast
     shm_size: "512m"
     cpus: "0.5"
     mem_limit: 512m
