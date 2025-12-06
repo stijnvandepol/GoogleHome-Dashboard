@@ -34,8 +34,6 @@ services:
       - FRAMERATE=5
       - FFMPEG_PRESET=veryfast
     shm_size: "512m"
-    cpus: "1.0"
-    mem_limit: 1024
     networks:
       - dashboardnet
 
