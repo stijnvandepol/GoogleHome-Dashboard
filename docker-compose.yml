@@ -31,8 +31,26 @@ services:
       - RTMP_URL=rtmp://rtsp-server:1935/dashboard
       - SCREEN_WIDTH=1280
       - SCREEN_HEIGHT=720
-      - FRAMERATE=5
+      - FRAMERATE=3
       - FFMPEG_PRESET=veryfast
+    shm_size: "512m"
+    networks:
+      - dashboardnet
+
+  pagecaster-uptimekuma:
+    image: ghcr.io/rmitchellscott/pagecaster:latest
+    container_name: dashboard_pagecaster_uptimekuma
+    depends_on:
+      - rtsp-server
+    environment:
+      - WEB_URL=http://192.168.1.12:8081/status/thuisnetwerk
+      - AUDIO_SOURCE=silent
+      - RTMP_URL=rtmp://rtsp-server:1935/uptimekuma
+      - SCREEN_WIDTH=1920
+      - SCREEN_HEIGHT=1080
+      - FRAMERATE=3
+      - FFMPEG_PRESET=veryfast
+      - CHROME_ARGS=--force-device-scale-factor=0.50
     shm_size: "512m"
     networks:
       - dashboardnet
