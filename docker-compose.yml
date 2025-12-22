@@ -47,7 +47,7 @@ services:
     depends_on:
       - rtsp-server
     environment:
-      - WEB_URL=http://frontend
+      - WEB_URL=http://192.168.1.12:8081/status/thuisnetwerk
       - AUDIO_SOURCE=silent
       - RTMP_URL=rtmp://rtsp-server:1935/uptimekuma
       - SCREEN_WIDTH=1920
