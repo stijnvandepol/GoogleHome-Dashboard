@@ -58,7 +58,6 @@ services:
       - SCREEN_HEIGHT=1080
       - FRAMERATE=3
       - FFMPEG_PRESET=veryfast
-      - CHROME_ARGS=--force-device-scale-factor=0.50
     shm_size: "512m"
     networks:
       - dashboardnet
