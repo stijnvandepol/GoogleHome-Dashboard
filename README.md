@@ -1,6 +1,6 @@
 # GoogleHome Dashboard
 
-Een lichtgewicht HTML-dashboard (tijd, weer, Homey statistieken, nieuws) dat als videostream op Google Home / Nest schermen kan worden afgespeeld. De frontend draait in een browser container, wordt door Pagecaster gerenderd tot een ~3 FPS RTMP/RTSP-stream en kan vervolgens via Scrypted naar Google Home/Chromecast worden gepusht. Ideaal om actuele informatie op je TV te “casten” zonder custom apps.
+Een lichtgewicht HTML-dashboard (tijd, weer, Homey statistieken, nieuws) dat als videostream op Google Home / Nest schermen kan worden afgespeeld. De frontend draait in een browser container, wordt door Pagecaster gerenderd tot een ~3 FPS RTMP/RTSP-stream en kan vervolgens via Scrypted naar Google Home/Chromecast worden gepusht. Ideaal om actuele informatie op je TV te “casten” zonder custom apps
 
 ## Inhoud
 - Overzicht
