@@ -324,11 +324,11 @@
 
     // Mapping van Homey-velden naar personen + kleur + initiaal
     const PRESENCE_PERSONS = [
-      { key: 'aanwezigheidstijn',   initial: 'SV', color: '#3b82f6', name: 'Stijn' },
-      { key: 'aanwezigheidbritt',   initial: 'BV', color: '#facc15', name: 'Britt' },
-      { key: 'aanwezigheidrens',    initial: 'RV', color: '#22c55e', name: 'Rens' },
-      { key: 'aanwezigheidsandra',  initial: 'SD', color: '#8b5cf6', name: 'Sandra' },
-      { key: 'aanwezigheidalfredo', initial: 'AV', color: '#ef4444', name: 'Alfredo' }
+      { key: 'aanwezigheid_stijn',   initial: 'SV', color: '#3b82f6', name: 'Stijn' },
+      { key: 'aanwezigheid_britt',   initial: 'BV', color: '#facc15', name: 'Britt' },
+      { key: 'aanwezigheid_rens',    initial: 'RV', color: '#22c55e', name: 'Rens' },
+      { key: 'aanwezigheid_sandra',  initial: 'SD', color: '#8b5cf6', name: 'Sandra' },
+      { key: 'aanwezigheid_alfredo', initial: 'AV', color: '#ef4444', name: 'Alfredo' }
     ];
 
     function updateTime() {
@@ -489,12 +489,12 @@
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
 
         const payload = await resp.json();
-        const data = payload?.data?.nefit || {};
+        const data = payload?.data?.home || {};
 
-        const tBinnen = formatNumber(data.temperatuurbinnen, 1, '°C');
-        const tSet = formatNumber(data.temperatuuringesteld, 1, '°C');
-        const stroom = formatNumber(data.stroomverbruikvandaag, 2, ' kWh');
-        const gas = formatNumber(data.gasverbruikvandaag, 3, ' m³');
+        const tBinnen = formatNumber(data.temperatuur_binnen, 1, '°C');
+        const tSet = formatNumber(data.temperatuur_ingesteld, 1, '°C');
+        const stroom = formatNumber(data.stroomverbruik_vandaag, 2, ' kWh');
+        const gas = formatNumber(data.gasverbruik_vandaag, 3, ' m³');
 
         el.innerHTML = `
           <div class="metrics">
