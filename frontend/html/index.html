@@ -44,7 +44,6 @@
       align-items: flex-end;
       border-bottom: 1px solid rgba(255,255,255,0.06);
       padding-bottom: 6px;
-      position: relative;
     }
 
     .clock {
@@ -62,7 +61,6 @@
       font-weight: 300;
     }
 
-    /* Aanwezigheid rechtsboven */
     .presence {
       display: flex;
       flex-direction: column;
@@ -86,7 +84,6 @@
       max-width: 520px;
     }
 
-    /* Nieuwe stijl: leesbare naam-badges */
     .presence-pill {
       display: inline-flex;
       align-items: center;
@@ -159,10 +156,7 @@
       left: 0;
       right: 0;
       height: 1px;
-      background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255,255,255,0.15) 50%,
-        transparent 100%);
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
     }
 
     .card::after {
@@ -172,12 +166,7 @@
       left: -50%;
       width: 200%;
       height: 100%;
-      background: linear-gradient(120deg,
-        transparent 0%,
-        rgba(255,255,255,0.03) 45%,
-        rgba(255,255,255,0.08) 50%,
-        rgba(255,255,255,0.03) 55%,
-        transparent 100%);
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 55%, transparent 100%);
       transform: translateX(-100%);
       pointer-events: none;
     }
@@ -289,8 +278,6 @@
         <div class="clock" id="clock">00:00</div>
         <div class="date" id="date">Datum laden...</div>
       </div>
-
-      <!-- Nieuwe aanwezigheid-hoek rechtsboven -->
       <div class="presence" id="presence">
         <div class="presence-label">Thuis</div>
         <div class="presence-list">
@@ -319,26 +306,19 @@
   </main>
 
   <script>
-    const LAT = 51.6467;
-    const LON = 5.9447;
     const HOMEY_API = 'http://192.168.1.21:3000/BaYYjdNFpMdyeqOTRHpbYzLTbRTRgu';
-
-    // KNMI EDR API (official KNMI data platform)
-    // Use the local proxy to avoid CORS and keep the API key out of the browser.
     const KNMI_API_KEY = window.KNMI_API_KEY || '';
     const KNMI_STATION_ID = '0-20000-0-06375';
     const KNMI_STATION_LABEL = '';
-    const KNMI_EDR_BASE =
-      'https://api.dataplatform.knmi.nl/edr/v1/collections/10-minute-in-situ-meteorological-observations';
-    const KNMI_PROXY_BASE = '/knmi'; // Proxy base path (served by nginx).
+    const KNMI_EDR_BASE = 'https://api.dataplatform.knmi.nl/edr/v1/collections/10-minute-in-situ-meteorological-observations';
+    const KNMI_PROXY_BASE = '/knmi';
 
-    // Mapping van Homey-velden naar personen + kleur + initiaal
     const PRESENCE_PERSONS = [
-      { key: 'aanwezigheid_stijn',   initial: 'SV', color: '#3b82f6', name: 'Stijn' },
-      { key: 'aanwezigheid_britt',   initial: 'BV', color: '#facc15', name: 'Britt' },
-      { key: 'aanwezigheid_rens',    initial: 'RV', color: '#22c55e', name: 'Rens' },
-      { key: 'aanwezigheid_sandra',  initial: 'SD', color: '#8b5cf6', name: 'Sandra' },
-      { key: 'aanwezigheid_alfredo', initial: 'AV', color: '#ef4444', name: 'Alfredo' }
+      { key: 'aanwezigheid_stijn', color: '#3b82f6', name: 'Stijn' },
+      { key: 'aanwezigheid_britt', color: '#facc15', name: 'Britt' },
+      { key: 'aanwezigheid_rens', color: '#22c55e', name: 'Rens' },
+      { key: 'aanwezigheid_sandra', color: '#8b5cf6', name: 'Sandra' },
+      { key: 'aanwezigheid_alfredo', color: '#ef4444', name: 'Alfredo' }
     ];
 
     function updateTime() {
@@ -361,9 +341,7 @@
 
     function buildKnmiUrl(endpoint, params) {
       const base = KNMI_PROXY_BASE || KNMI_EDR_BASE;
-      const baseUrl = KNMI_PROXY_BASE
-        ? window.location.origin
-        : undefined;
+      const baseUrl = KNMI_PROXY_BASE ? window.location.origin : undefined;
       const url = new URL(`${base.replace(/\/$/, '')}/${endpoint}`, baseUrl);
       Object.entries(params || {}).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -408,24 +386,12 @@
       return { value: null, time: null, unit: getUnit(coverage, paramName) };
     }
 
-    function formatObsTime(isoString) {
-      if (!isoString) return '';
-      const date = new Date(isoString);
-      if (Number.isNaN(date.getTime())) return '';
-      return date.toLocaleTimeString('nl-NL', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Europe/Amsterdam'
-      });
-    }
-
     async function getWeather() {
       const el = document.getElementById('weather');
       try {
         const useProxy = KNMI_PROXY_BASE && KNMI_PROXY_BASE.startsWith('/');
         if ((!useProxy && !KNMI_API_KEY) || KNMI_STATION_ID.includes('XXXXX')) {
-          el.innerHTML =
-            '<div class="loading">Stel KNMI_API_KEY en KNMI_STATION_ID in</div>';
+          el.innerHTML = '<div class="loading">Stel KNMI_API_KEY en KNMI_STATION_ID in</div>';
           return;
         }
 
@@ -452,7 +418,6 @@
         const temp = formatNumber(ta.value, 1, ta.unit || '°C');
         const humidity = formatNumber(rh.value, 0, rh.unit ? ` ${rh.unit}` : '%');
         const wind = formatNumber(ff.value, 1, ff.unit ? ` ${ff.unit}` : ' m/s');
-
         const desc = KNMI_STATION_LABEL ? `KNMI ${KNMI_STATION_LABEL}` : '';
 
         el.innerHTML = `
@@ -482,9 +447,7 @@
     async function getNews() {
       const el = document.getElementById('news');
       try {
-        const resp = await fetch(
-          'https://api.rss2json.com/v1/api.json?rss_url=http://feeds.nos.nl/nosnieuwsalgemeen'
-        );
+        const resp = await fetch('https://api.rss2json.com/v1/api.json?rss_url=http://feeds.nos.nl/nosnieuwsalgemeen');
         const data = await resp.json();
         if (!data.items || data.items.length === 0) {
           el.innerHTML = '<div class="loading">Geen nieuws beschikbaar</div>';
@@ -516,7 +479,6 @@
       return `${Number(value).toFixed(decimals)}${suffix}`;
     }
 
-    // Render aanwezigheid: toon leesbare naam-badges rechtsboven
     function renderPresence(data) {
       const el = document.getElementById('presence');
       if (!el) return;
@@ -545,9 +507,7 @@
       if (active.length > maxVisible) {
         const remaining = active.length - maxVisible;
         const remainingNames = active.slice(maxVisible).map(p => p.name).join(', ');
-        pills.push(`
-          <div class="presence-pill presence-more" title="${remainingNames}">+${remaining} meer</div>
-        `);
+        pills.push(`<div class="presence-pill presence-more" title="${remainingNames}">+${remaining} meer</div>`);
       }
 
       el.innerHTML = `
@@ -593,14 +553,12 @@
           </div>
         `;
 
-        // Aanwezigheid icoontjes updaten met dezelfde data
         renderPresence(data);
 
       } catch (err) {
         console.error('Homey fetch error', err);
         el.innerHTML = '<div class="loading">Kon Homey data niet laden</div>';
 
-        // Bij fout: laat aanwezigheid op "Onbekend"
         const presenceEl = document.getElementById('presence');
         if (presenceEl) {
           presenceEl.innerHTML = `
@@ -613,17 +571,15 @@
       }
     }
 
-    // Initial load
     updateTime();
     getWeather();
     getNews();
     getHomeyStatus();
 
-    // Intervals
     setInterval(updateTime, 1000);
-    setInterval(getWeather, 300000);      // elke 5 minuten
-    setInterval(getNews, 600000);         // elke 10 minuten
-    setInterval(getHomeyStatus, 60000);   // elke minuut
+    setInterval(getWeather, 300000);
+    setInterval(getNews, 600000);
+    setInterval(getHomeyStatus, 60000);
   </script>
 </body>
 </html>
