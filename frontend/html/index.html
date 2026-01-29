@@ -204,10 +204,11 @@
     }
 
     .weather-temp {
-      font-size: 96px;
+      font-size: 80px;
       font-weight: 200;
       color: #f0f0f0;
       text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+      white-space: nowrap;
     }
 
     .weather-desc {
@@ -323,13 +324,13 @@
     const HOMEY_API = 'http://192.168.1.21:3000/BaYYjdNFpMdyeqOTRHpbYzLTbRTRgu';
 
     // KNMI EDR API (official KNMI data platform)
-    // Note: The EDR API enforces CORS for *.knmi.nl; use a server-side proxy if needed.
-    const KNMI_API_KEY = window.KNMI_API_KEY || 'eyJvcmciOiI1ZTU1NGUxOTI3NGE5NjAwMDEyYTNlYjEiLCJpZCI6IjEyY2Y2OTgyYWQ4NTQyNzM5ZTgzY2IxMDMyZTQ0OTA2IiwiaCI6Im11cm11cjEyOCJ9';
+    // Use the local proxy to avoid CORS and keep the API key out of the browser.
+    const KNMI_API_KEY = window.KNMI_API_KEY || '';
     const KNMI_STATION_ID = '0-20000-0-06375';
-    const KNMI_STATION_LABEL = 'Volkel Airport';
+    const KNMI_STATION_LABEL = '';
     const KNMI_EDR_BASE =
       'https://api.dataplatform.knmi.nl/edr/v1/collections/10-minute-in-situ-meteorological-observations';
-    const KNMI_PROXY_BASE = ''; // Optional: set to your proxy base, same path as KNMI_EDR_BASE.
+    const KNMI_PROXY_BASE = '/knmi'; // Proxy base path (served by nginx).
 
     // Mapping van Homey-velden naar personen + kleur + initiaal
     const PRESENCE_PERSONS = [
@@ -360,7 +361,10 @@
 
     function buildKnmiUrl(endpoint, params) {
       const base = KNMI_PROXY_BASE || KNMI_EDR_BASE;
-      const url = new URL(`${base}/${endpoint}`);
+      const baseUrl = KNMI_PROXY_BASE
+        ? window.location.origin
+        : undefined;
+      const url = new URL(`${base.replace(/\/$/, '')}/${endpoint}`, baseUrl);
       Object.entries(params || {}).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           url.searchParams.set(key, value);
@@ -418,7 +422,8 @@
     async function getWeather() {
       const el = document.getElementById('weather');
       try {
-        if (!KNMI_API_KEY || KNMI_STATION_ID.includes('XXXXX')) {
+        const useProxy = KNMI_PROXY_BASE && KNMI_PROXY_BASE.startsWith('/');
+        if ((!useProxy && !KNMI_API_KEY) || KNMI_STATION_ID.includes('XXXXX')) {
           el.innerHTML =
             '<div class="loading">Stel KNMI_API_KEY en KNMI_STATION_ID in</div>';
           return;
@@ -433,7 +438,7 @@
           datetime
         });
 
-        const resp = await fetch(url, {
+        const resp = await fetch(url, useProxy ? {} : {
           headers: { Authorization: KNMI_API_KEY }
         });
         if (!resp.ok) throw new Error(`KNMI HTTP ${resp.status}`);
@@ -444,15 +449,11 @@
         const rh = extractLatestValue(coverage, 'rh');
         const ff = extractLatestValue(coverage, 'ff');
 
-        const temp = formatNumber(ta.value, 1, ta.unit ? ` ${ta.unit}` : ' °C');
+        const temp = formatNumber(ta.value, 1, ta.unit || '°C');
         const humidity = formatNumber(rh.value, 0, rh.unit ? ` ${rh.unit}` : '%');
         const wind = formatNumber(ff.value, 1, ff.unit ? ` ${ff.unit}` : ' m/s');
 
-        const stationLabel = KNMI_STATION_LABEL || KNMI_STATION_ID;
-        const obsTime = formatObsTime(ta.time || rh.time || ff.time);
-        const desc = obsTime
-          ? `KNMI ${stationLabel} • ${obsTime}`
-          : `KNMI ${stationLabel}`;
+        const desc = KNMI_STATION_LABEL ? `KNMI ${KNMI_STATION_LABEL}` : '';
 
         el.innerHTML = `
           <div class="weather-main">

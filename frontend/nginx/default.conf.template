@@ -1,0 +1,17 @@
+server {
+  listen 80;
+  server_name _;
+  root /usr/share/nginx/html;
+  index index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  location /knmi/ {
+    proxy_pass https://api.dataplatform.knmi.nl/edr/v1/collections/10-minute-in-situ-meteorological-observations/;
+    proxy_set_header Host api.dataplatform.knmi.nl;
+    proxy_set_header Authorization "$KNMI_API_KEY";
+    proxy_ssl_server_name on;
+  }
+}

@@ -6,11 +6,16 @@ services:
     container_name: dashboard_frontend
     ports:
       - "8080:80"
+    environment:
+      - KNMI_API_KEY=${KNMI_API_KEY}
     networks:
       - dashboardnet
     restart: unless-stopped
     logging:
-      driver: "none"
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
 
   rtsp-server:
     image: bluenviron/mediamtx:latest
@@ -21,7 +26,10 @@ services:
       - dashboardnet
     restart: unless-stopped
     logging:
-      driver: "none"
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
 
   pagecaster-dashboard:
     image: ghcr.io/rmitchellscott/pagecaster:latest
@@ -42,27 +50,10 @@ services:
     networks:
       - dashboardnet
     logging:
-      driver: "none"
-
-  pagecaster-uptimekuma:
-    image: ghcr.io/rmitchellscott/pagecaster:latest
-    container_name: dashboard_pagecaster_uptimekuma
-    depends_on:
-      - rtsp-server
-    restart: unless-stopped
-    environment:
-      - WEB_URL=http://192.168.1.12:8081/status/thuisnetwerk
-      - AUDIO_SOURCE=silent
-      - RTMP_URL=rtmp://rtsp-server:1935/uptimekuma
-      - SCREEN_WIDTH=1920
-      - SCREEN_HEIGHT=1080
-      - FRAMERATE=3
-      - FFMPEG_PRESET=veryfast
-    shm_size: "512m"
-    networks:
-      - dashboardnet
-    logging:
-      driver: "none"
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
 
 networks:
   dashboardnet:
