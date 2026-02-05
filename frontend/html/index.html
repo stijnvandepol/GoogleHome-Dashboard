@@ -214,6 +214,12 @@
       font-weight: 300;
     }
 
+    .weather-updated {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #6f6f6f;
+    }
+
     .metrics {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -312,6 +318,7 @@
     const KNMI_STATION_LABEL = '';
     const KNMI_EDR_BASE = 'https://api.dataplatform.knmi.nl/edr/v1/collections/10-minute-in-situ-meteorological-observations';
     const KNMI_PROXY_BASE = '/knmi';
+    const WEATHER_CACHE_KEY = 'dashboard-weather-cache-v1';
 
     const PRESENCE_PERSONS = [
       { key: 'aanwezigheid_stijn', color: '#3b82f6', name: 'Stijn' },
@@ -386,9 +393,69 @@
       return { value: null, time: null, unit: getUnit(coverage, paramName) };
     }
 
+    function formatWeatherTimestamp(value) {
+      if (!value) return 'Onbekend';
+      const date = value instanceof Date ? value : new Date(value);
+      if (Number.isNaN(date.getTime())) return 'Onbekend';
+      return date.toLocaleString('nl-NL', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Amsterdam'
+      });
+    }
+
+    function saveWeatherCache(payload) {
+      try {
+        localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(payload));
+      } catch (err) {
+        console.warn('Weather cache save failed', err);
+      }
+    }
+
+    function loadWeatherCache() {
+      try {
+        const raw = localStorage.getItem(WEATHER_CACHE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (err) {
+        console.warn('Weather cache load failed', err);
+        return null;
+      }
+    }
+
+    function renderWeather(el, payload, isFallback = false) {
+      if (!payload) return false;
+      const temp = formatNumber(payload.temp, 1, payload.tempSuffix || '°C');
+      const humidity = formatNumber(payload.humidity, 0, payload.humiditySuffix || '%');
+      const wind = formatNumber(payload.wind, 1, payload.windSuffix || ' m/s');
+      const desc = payload.desc || '';
+      const updated = formatWeatherTimestamp(payload.updatedAt);
+      const fallbackNote = isFallback ? ' (laatste meting)' : '';
+
+      el.innerHTML = `
+        <div class="weather-main">
+          <div class="weather-temp">${temp}</div>
+          <div class="weather-desc">${desc}</div>
+        </div>
+        <div class="weather-details">
+          Luchtvochtigheid: ${humidity}<br>
+          Wind: ${wind}
+          <div class="weather-updated">Laatst bijgewerkt: ${updated}${fallbackNote}</div>
+        </div>
+      `;
+      return true;
+    }
+
     async function getWeather() {
       const el = document.getElementById('weather');
       try {
+        const cached = loadWeatherCache();
+        if (cached) {
+          renderWeather(el, cached, true);
+        }
+
         const useProxy = KNMI_PROXY_BASE && KNMI_PROXY_BASE.startsWith('/');
         if ((!useProxy && !KNMI_API_KEY) || KNMI_STATION_ID.includes('XXXXX')) {
           el.innerHTML = '<div class="loading">Stel KNMI_API_KEY en KNMI_STATION_ID in</div>';
@@ -415,24 +482,25 @@
         const rh = extractLatestValue(coverage, 'rh');
         const ff = extractLatestValue(coverage, 'ff');
 
-        const temp = formatNumber(ta.value, 1, ta.unit || '°C');
-        const humidity = formatNumber(rh.value, 0, rh.unit ? ` ${rh.unit}` : '%');
-        const wind = formatNumber(ff.value, 1, ff.unit ? ` ${ff.unit}` : ' m/s');
-        const desc = KNMI_STATION_LABEL ? `KNMI ${KNMI_STATION_LABEL}` : '';
+        const payload = {
+          temp: ta.value,
+          tempSuffix: ta.unit || '°C',
+          humidity: rh.value,
+          humiditySuffix: rh.unit ? ` ${rh.unit}` : '%',
+          wind: ff.value,
+          windSuffix: ff.unit ? ` ${ff.unit}` : ' m/s',
+          desc: KNMI_STATION_LABEL ? `KNMI ${KNMI_STATION_LABEL}` : '',
+          updatedAt: ta.time || rh.time || ff.time || new Date().toISOString()
+        };
 
-        el.innerHTML = `
-          <div class="weather-main">
-            <div class="weather-temp">${temp}</div>
-            <div class="weather-desc">${desc}</div>
-          </div>
-          <div class="weather-details">
-            Luchtvochtigheid: ${humidity}<br>
-            Wind: ${wind}
-          </div>
-        `;
+        saveWeatherCache(payload);
+        renderWeather(el, payload);
       } catch (err) {
         console.error('Weather fetch error', err);
-        el.innerHTML = '<div class="loading">Kon weer niet laden</div>';
+        const cached = loadWeatherCache();
+        if (!renderWeather(el, cached, true)) {
+          el.innerHTML = '<div class="loading">Weerdata wordt bijgewerkt</div>';
+        }
       }
     }
 
