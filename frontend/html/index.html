@@ -56,11 +56,24 @@
       text-shadow: 0 2px 20px rgba(0,0,0,0.4);
     }
 
+    .date-row {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+
     .date {
       font-size: 28px;
       color: #9a9a9a;
       text-transform: capitalize;
       font-weight: 300;
+    }
+
+    .date-secondary {
+      font-size: 22px;
+      color: #7f7f7f;
+      font-weight: 300;
+      letter-spacing: 0.3px;
     }
 
     .presence {
@@ -286,7 +299,10 @@
     <header class="header">
       <div>
         <div class="clock" id="clock">00:00</div>
-        <div class="date" id="date">Datum laden...</div>
+        <div class="date-row">
+          <div class="date" id="date">Datum laden...</div>
+          <div class="date-secondary" id="clock-curacao">Curaçao · 00:00</div>
+        </div>
       </div>
       <div class="presence" id="presence">
         <div class="presence-label">Thuis</div>
@@ -348,6 +364,7 @@
 
       const DOM = {
         clock: document.getElementById('clock'),
+        clockCuracao: document.getElementById('clock-curacao'),
         date: document.getElementById('date'),
         presence: document.getElementById('presence'),
         weather: document.getElementById('weather'),
@@ -533,6 +550,11 @@
           minute: '2-digit',
           timeZone: 'Europe/Amsterdam'
         });
+        const curacaoClock = now.toLocaleTimeString('nl-NL', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'America/Curacao'
+        });
         const date = now.toLocaleDateString('nl-NL', {
           weekday: 'long',
           day: 'numeric',
@@ -541,6 +563,7 @@
           timeZone: 'Europe/Amsterdam'
         });
         setText(DOM.clock, clock);
+        setText(DOM.clockCuracao, `Curaçao · ${curacaoClock}`);
         setText(DOM.date, date);
       }
 
