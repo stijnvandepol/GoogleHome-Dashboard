@@ -1,0 +1,38 @@
+name: Deploy Dashboard
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: [self-hosted]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 1
+          clean: false
+
+      - name: Verify Docker tooling
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Deploy stack
+        run: docker compose up -d --build --remove-orphans
+
+      - name: Show service status
+        if: always()
+        run: docker compose ps
+
+      - name: Show recent logs on failure
+        if: failure()
+        run: docker compose logs --tail=200
+
+            DC="docker-compose"
+          fi
+          $DC ps
+          docker ps
