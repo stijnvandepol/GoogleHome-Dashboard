@@ -4,6 +4,7 @@
 :root {
   font-size: 16px;
   color-scheme: dark;
+  --overscan-scale: 1.06;
   --bg-primary: #050505;
   --bg-secondary: #111111;
   --surface: rgba(255,255,255,0.01);
@@ -60,7 +61,11 @@ body::before {
 .dashboard {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  width: calc(100% / var(--overscan-scale));
+  height: calc(100% / var(--overscan-scale));
+  margin: auto;
+  transform: scale(var(--overscan-scale));
+  transform-origin: center center;
   gap: 14px;
   position: relative;
 }
