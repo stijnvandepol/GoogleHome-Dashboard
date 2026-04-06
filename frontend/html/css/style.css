@@ -1,7 +1,7 @@
 /* Base */
 :root {
   font-size: 16px;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -11,7 +11,6 @@
 }
 
 html, body {
-  background: #000000;
   height: 100%;
   overflow: hidden;
 }
@@ -20,9 +19,27 @@ body {
   width: 1280px;
   height: 720px;
   margin: 0 auto;
-  color: #e8e8e8;
+  background: linear-gradient(160deg, #f5f0eb 0%, #ede6dd 40%, #e8dfd4 100%);
+  color: #2c2418;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  padding: 12px 30px 18px;
+  padding: 14px 32px 20px;
+  position: relative;
+}
+
+/* Subtiele hout-textuur overlay */
+body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.025;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 3px,
+    rgba(139,109,71,0.3) 3px,
+    rgba(139,109,71,0.3) 4px
+  );
+  pointer-events: none;
 }
 
 /* Layout */
@@ -30,45 +47,49 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 12px;
+  gap: 14px;
+  position: relative;
 }
 
+/* Header */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(139,109,71,0.12);
+  padding-bottom: 8px;
 }
 
 .clock {
   font-size: 96px;
-  font-weight: 200;
-  letter-spacing: 2px;
-  color: #f5f5f5;
-  text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+  font-weight: 100;
+  letter-spacing: 4px;
+  color: #2c2418;
+  line-height: 1;
 }
 
 .date-row {
   display: flex;
   align-items: baseline;
   gap: 16px;
+  margin-top: 2px;
 }
 
 .date {
-  font-size: 28px;
-  color: #9a9a9a;
+  font-size: 22px;
+  color: #9a8b78;
   text-transform: capitalize;
   font-weight: 300;
+  letter-spacing: 0.5px;
 }
 
 .date-secondary {
-  font-size: 22px;
-  color: #7f7f7f;
+  font-size: 18px;
+  color: #a89880;
   font-weight: 300;
-  letter-spacing: 0.3px;
 }
 
+/* Presence */
 .presence {
   display: flex;
   flex-direction: column;
@@ -77,15 +98,15 @@ body {
 }
 
 .presence-label {
-  font-size: 14px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #7a7a7a;
+  color: #9a8b78;
 }
 
 .presence-list {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
@@ -95,188 +116,144 @@ body {
 .presence-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 7px;
+  padding: 6px 14px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.04);
-  color: #e8e8e8;
-  font-weight: 600;
-  font-size: 18px;
-  backdrop-filter: blur(6px) saturate(120%);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+  background: rgba(139,109,71,0.07);
+  border: 1px solid rgba(139,109,71,0.1);
+  color: #5a4d3e;
+  font-weight: 500;
+  font-size: 16px;
   white-space: nowrap;
 }
 
 .presence-dot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  flex: 0 0 10px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  flex: 0 0 9px;
 }
 
 .presence-empty {
   font-size: 16px;
-  color: #6a6a6a;
+  color: #9a8b78;
   font-weight: 300;
 }
 
-/* Cards */
+/* Cards grid — originele structuur */
 .cards {
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: 380px 1fr;
   grid-template-rows: auto 1fr;
   grid-template-areas:
     "weather news"
-    "homey news";
-  gap: 15px;
+    "homey   news";
+  gap: 14px;
   flex: 1;
+  min-height: 0;
 }
 
 .card {
-  background: linear-gradient(135deg, rgba(40,40,40,0.3) 0%, rgba(25,25,25,0.5) 100%);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 8px;
-  padding: 22px;
-  backdrop-filter: blur(40px) saturate(150%);
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.4),
-    0 2px 8px rgba(0,0,0,0.2),
-    inset 0 1px 1px rgba(255,255,255,0.1),
-    inset 0 -1px 1px rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.42);
+  border: 1px solid rgba(139,109,71,0.08);
+  border-radius: 10px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
-  position: relative;
-  overflow: hidden;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
-}
-
-.card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -50%;
-  width: 200%;
-  height: 100%;
-  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 55%, transparent 100%);
-  transform: translateX(-100%);
-  pointer-events: none;
 }
 
 #weather-card { grid-area: weather; }
-#homey-card { grid-area: homey; }
-.news-card { grid-area: news; }
+#homey-card   { grid-area: homey; }
+.news-card    { grid-area: news; }
 
-/* Components */
-.card-title {
-  font-size: 26px;
+/* Card label */
+.card-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #9a8b78;
+  margin-bottom: 12px;
   font-weight: 400;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #b8b8b8;
-  letter-spacing: 0.5px;
 }
 
-.weather-main {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-}
-
+/* Weer */
 .weather-temp {
-  font-size: 80px;
+  font-size: 56px;
   font-weight: 200;
-  color: #f0f0f0;
-  text-shadow: 0 2px 20px rgba(0,0,0,0.3);
-  white-space: nowrap;
+  color: #2c2418;
+  line-height: 1;
 }
 
-.weather-desc {
-  font-size: 28px;
-  color: #a0a0a0;
+.weather-detail {
+  font-size: 18px;
+  color: #8b7a65;
   font-weight: 300;
-}
-
-.weather-details {
-  margin-top: 22px;
-  font-size: 22px;
-  color: #8a8a8a;
+  margin-top: 8px;
   line-height: 1.6;
-  font-weight: 300;
 }
 
-.weather-updated {
-  margin-top: 10px;
-  font-size: 16px;
-  color: #6f6f6f;
-}
-
+/* Huis metrics */
 .metrics {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 20px;
-  font-size: 20px;
-  color: #c0c0c0;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 16px;
+  flex: 1;
 }
 
 .metric-label {
-  font-size: 14px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #7a7a7a;
-  margin-bottom: 6px;
-  font-weight: 400;
+  color: #9a8b78;
+  margin-bottom: 4px;
 }
 
 .metric-value {
-  font-size: 28px;
-  font-weight: 300;
-  color: #d8d8d8;
+  font-size: 26px;
+  font-weight: 200;
+  color: #2c2418;
 }
 
+/* Nieuws */
 .news-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0;
   flex: 1;
   overflow: hidden;
+  justify-content: space-between;
 }
 
 .news-item {
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(139,109,71,0.08);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.news-item:last-child {
+  border-bottom: none;
 }
 
 .news-headline {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 400;
-  color: #e0e0e0;
-  line-height: 1.4;
+  color: #2c2418;
+  line-height: 1.3;
 }
 
 .news-meta {
-  margin-top: 8px;
-  font-size: 18px;
-  color: #6a6a6a;
+  margin-top: 6px;
+  font-size: 15px;
+  color: #9a8b78;
   font-weight: 300;
 }
 
 .loading {
-  font-size: 24px;
-  color: #7a7a7a;
+  font-size: 18px;
+  color: #9a8b78;
   font-weight: 300;
 }

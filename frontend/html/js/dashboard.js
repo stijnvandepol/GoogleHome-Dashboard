@@ -21,11 +21,11 @@
   };
 
   const PRESENCE_PERSONS = [
-    { key: 'aanwezigheid_stijn', color: '#3b82f6', name: 'Stijn' },
-    { key: 'aanwezigheid_britt', color: '#facc15', name: 'Britt' },
-    { key: 'aanwezigheid_rens', color: '#22c55e', name: 'Rens' },
-    { key: 'aanwezigheid_sandra', color: '#8b5cf6', name: 'Sandra' },
-    { key: 'aanwezigheid_alfredo', color: '#ef4444', name: 'Alfredo' }
+    { key: 'aanwezigheid_stijn', color: '#7da67d', name: 'Stijn' },
+    { key: 'aanwezigheid_britt', color: '#c4a24e', name: 'Britt' },
+    { key: 'aanwezigheid_rens', color: '#6b9e6b', name: 'Rens' },
+    { key: 'aanwezigheid_sandra', color: '#9b7ec4', name: 'Sandra' },
+    { key: 'aanwezigheid_alfredo', color: '#c75a5a', name: 'Alfredo' }
   ];
 
   const DOM = {
@@ -160,19 +160,12 @@
     const temp = formatNumber(payload.temp, 1, payload.tempSuffix || '°C');
     const humidity = formatNumber(payload.humidity, 0, payload.humiditySuffix || '%');
     const wind = formatNumber(payload.wind, 1, payload.windSuffix || ' m/s');
-    const desc = payload.desc || '';
-    const updated = formatWeatherTimestamp(payload.updatedAt);
-    const fallbackNote = isFallback ? ' (laatste meting)' : '';
 
     setHTML(DOM.weather, `
-      <div class="weather-main">
-        <div class="weather-temp">${temp}</div>
-        <div class="weather-desc">${desc}</div>
-      </div>
-      <div class="weather-details">
+      <div class="weather-temp">${temp}</div>
+      <div class="weather-detail">
         Luchtvochtigheid: ${humidity}<br>
         Wind: ${wind}
-        <div class="weather-updated">Laatst bijgewerkt: ${updated}${fallbackNote}</div>
       </div>
     `);
     return true;
@@ -328,8 +321,8 @@
 
       const tBinnen = formatNumber(data.temperatuur_binnen, 1, '°C');
       const tSet = formatNumber(data.temperatuur_ingesteld, 1, '°C');
-      const stroom = formatNumber(data.stroomverbruik_vandaag, 2, ' kWh');
-      const gas = formatNumber(data.gasverbruik_vandaag, 3, ' m³');
+      const stroom = formatNumber(data.stroomverbruik_vandaag, 2);
+      const gas = formatNumber(data.gasverbruik_vandaag, 3);
 
       setHTML(DOM.homey, `
         <div class="metrics">
@@ -338,16 +331,16 @@
             <div class="metric-value">${tBinnen}</div>
           </div>
           <div>
-            <div class="metric-label">Temp. ingesteld</div>
+            <div class="metric-label">Ingesteld</div>
             <div class="metric-value">${tSet}</div>
           </div>
           <div>
             <div class="metric-label">Stroom vandaag</div>
-            <div class="metric-value">${stroom}</div>
+            <div class="metric-value">${stroom} <span style="font-size:14px;color:#8b7a65;">kWh</span></div>
           </div>
           <div>
             <div class="metric-label">Gas vandaag</div>
-            <div class="metric-value">${gas}</div>
+            <div class="metric-value">${gas} <span style="font-size:14px;color:#8b7a65;">m³</span></div>
           </div>
         </div>
       `);
@@ -355,7 +348,7 @@
       renderPresence(data);
     } catch (err) {
       console.error('Homey fetch error', err);
-      setHTML(DOM.homey, '<div class="loading">Kon Homey data niet laden</div>');
+      setHTML(DOM.homey, '<div class="loading">Niet beschikbaar</div>');
       setHTML(DOM.presence, `
         <div class="presence-label">Thuis</div>
         <div class="presence-list">
