@@ -23,6 +23,9 @@ jobs:
       - name: Deploy stack
         run: docker compose up -d --build --remove-orphans
 
+      - name: Recreate pagecaster for layout updates
+        run: docker compose up -d --force-recreate --no-deps pagecaster-dashboard
+
       - name: Show service status
         if: always()
         run: docker compose ps

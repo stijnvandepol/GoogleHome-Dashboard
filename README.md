@@ -69,13 +69,13 @@ docker compose up -d --build frontend
 Of bind-mount (optioneel) door de Dockerfile aan te passen voor sneller itereren.
 
 ## Deployment (GitHub Actions)
-Workflow bestand: `.github/workflows/blank.yml` (hernoem eventueel naar `deploy.yml`).
+Workflow bestand: `.github/workflows/deploy.yml`.
 Werking:
 - Triggert op `push` naar `main` of handmatig (`workflow_dispatch`).
 - Op self-hosted runner:
   - Haalt code op
-  - `docker compose down`
   - `docker compose up -d --build --remove-orphans`
+  - `docker compose up -d --force-recreate --no-deps pagecaster-dashboard` (zodat layout/CSS updates direct zichtbaar zijn in de stream)
 
 Minimalistisch gehouden op verzoek (geen uitgebreide prunes/health checks). Wil je images vooraf updaten, voeg een stap toe:
 ```bash
