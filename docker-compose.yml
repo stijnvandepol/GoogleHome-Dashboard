@@ -11,6 +11,11 @@ services:
     networks:
       - dashboardnet
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     logging:
       driver: "json-file"
       options:
@@ -35,8 +40,10 @@ services:
     image: ghcr.io/rmitchellscott/pagecaster:latest
     container_name: dashboard_pagecaster
     depends_on:
-      - frontend
-      - rtsp-server
+      frontend:
+        condition: service_healthy
+      rtsp-server:
+        condition: service_started
     restart: unless-stopped
     environment:
       - WEB_URL=http://frontend

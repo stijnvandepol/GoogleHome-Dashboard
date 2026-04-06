@@ -12,7 +12,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref }}
           fetch-depth: 1
           clean: false
 
@@ -31,8 +30,3 @@ jobs:
       - name: Show recent logs on failure
         if: failure()
         run: docker compose logs --tail=200
-
-            DC="docker-compose"
-          fi
-          $DC ps
-          docker ps
