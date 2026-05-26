@@ -20,6 +20,11 @@ jobs:
           docker --version
           docker compose version
 
+      - name: Configure Docker daemon (IPv4 only)
+        run: |
+          echo '{"ipv6": false}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl reload docker
+
       - name: Deploy stack
         run: docker compose up -d --build --remove-orphans
 
