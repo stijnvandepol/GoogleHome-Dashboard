@@ -30,7 +30,6 @@
 
   const DOM = {
     clock: document.getElementById('clock'),
-    clockCuracao: document.getElementById('clock-curacao'),
     date: document.getElementById('date'),
     presence: document.getElementById('presence'),
     weather: document.getElementById('weather'),
@@ -209,11 +208,6 @@
       minute: '2-digit',
       timeZone: 'Europe/Amsterdam'
     });
-    const curacaoClock = now.toLocaleTimeString('nl-NL', {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'America/Curacao'
-    });
     const date = now.toLocaleDateString('nl-NL', {
       weekday: 'long',
       day: 'numeric',
@@ -222,7 +216,6 @@
       timeZone: 'Europe/Amsterdam'
     });
     setText(DOM.clock, clock);
-    setText(DOM.clockCuracao, `Curaçao · ${curacaoClock}`);
     setText(DOM.date, date);
   }
 
