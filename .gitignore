@@ -2,4 +2,4 @@ frontend/html/config.js
 .superpowers/
 docs/superpowers/plans/2026-04-06-dashboard-redesign.md
 docs/superpowers/specs/2026-04-06-dashboard-redesign-design.md
-.env
+.env.playwright-mcp/
