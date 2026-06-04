@@ -8,6 +8,8 @@ services:
       - "8080:80"
     environment:
       - KNMI_API_KEY=${KNMI_API_KEY}
+    depends_on:
+      - camera-proxy
     networks:
       - dashboardnet
     restart: unless-stopped
@@ -16,6 +18,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  camera-proxy:
+    build:
+      context: ./frontend/camera-proxy
+    container_name: dashboard_camera_proxy
+    # .env wordt read-only gemount en door proxy.py zelf gelezen, zodat een
+    # wachtwoord met $-tekens niet door compose-substitutie verminkt wordt.
+    volumes:
+      - ./.env:/app/camera.env:ro
+    networks:
+      - dashboardnet
+    restart: unless-stopped
     logging:
       driver: "json-file"
       options:

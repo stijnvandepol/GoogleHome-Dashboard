@@ -14,4 +14,13 @@ server {
     proxy_set_header Authorization "$KNMI_API_KEY";
     proxy_ssl_server_name on;
   }
+
+  # Camera-snapshot via de Digest-proxy sidecar (inlogvrij voor de browser).
+  # Variabele + Docker-resolver: nginx start ook als de proxy nog niet draait
+  # en volgt IP-wijzigingen bij herstart van de proxy.
+  location /camera {
+    resolver 127.0.0.11 valid=30s;
+    set $camera_proxy http://camera-proxy:8088;
+    proxy_pass $camera_proxy;
+  }
 }

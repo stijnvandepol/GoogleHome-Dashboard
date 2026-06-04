@@ -10,15 +10,22 @@
     knmiProxyBase: '/knmi',
     weatherCacheKey: 'dashboard-weather-cache-v1',
     newsFeed: 'http://feeds.nos.nl/nosnieuwsalgemeen',
-    newsApi: 'https://api.rss2json.com/v1/api.json'
+    newsApi: 'https://api.rss2json.com/v1/api.json',
+    cameraSnapshot: window.CAMERA_SNAPSHOT_URL || '/camera'
   };
 
   const INTERVALS = {
     clock: 1000,
     weather: 300000,
     news: 600000,
-    homey: 60000
+    homey: 60000,
+    cameraPoll: 2000,
+    cameraRefresh: 1000
   };
+
+  // Vangnet: verberg de camera als de vlag onverhoopt langer dan dit aan blijft
+  // (iets ruimer dan Homey's 5 min auto-uit).
+  const CAMERA_MAX_MS = 360000;
 
   const PRESENCE_PERSONS = [
     { key: 'aanwezigheid_stijn', color: '#7da67d', name: 'Stijn' },
@@ -34,7 +41,12 @@
     presence: document.getElementById('presence'),
     weather: document.getElementById('weather'),
     homey: document.getElementById('homey'),
-    news: document.getElementById('news')
+    news: document.getElementById('news'),
+    newsCard: document.querySelector('.news-card'),
+    newsLabel: document.getElementById('news-card-label'),
+    camera: document.getElementById('camera'),
+    cameraFeed: document.getElementById('camera-feed'),
+    cameraStatus: document.getElementById('camera-status')
   };
 
   // --- Helpers ---
@@ -351,18 +363,121 @@
     }
   }
 
+  // --- Camera ---
+
+  const cameraState = {
+    active: false,
+    refreshTimer: null,
+    startedAt: 0,
+    // Vangnet getriggerd: wacht tot de vlag weer 'uit' is voordat we opnieuw tonen
+    expiredLatch: false
+  };
+
+  function parseCameraFlag(value) {
+    if (value === true || value === 1) return true;
+    if (typeof value === 'string') {
+      return ['ja', 'yes', 'true', '1', 'on', 'aan'].includes(value.trim().toLowerCase());
+    }
+    return false;
+  }
+
+  // De snapshot-URL geeft een stilstaand JPEG terug (geen stream). We verversen
+  // daarom telkens met een cache-buster, anders bevriest de browser het beeld.
+  function refreshCameraFrame() {
+    if (!DOM.cameraFeed) return;
+    DOM.cameraFeed.src = `${CONFIG.cameraSnapshot}?ts=${Date.now()}`;
+  }
+
+  function showCamera() {
+    if (cameraState.active) return;
+    cameraState.active = true;
+    cameraState.startedAt = Date.now();
+
+    if (DOM.newsCard) DOM.newsCard.classList.add('camera-active');
+    if (DOM.news) DOM.news.hidden = true;
+    if (DOM.camera) DOM.camera.hidden = false;
+    if (DOM.cameraStatus) DOM.cameraStatus.hidden = true;
+    setText(DOM.newsLabel, 'Camera');
+
+    refreshCameraFrame();
+    cameraState.refreshTimer = setInterval(refreshCameraFrame, INTERVALS.cameraRefresh);
+  }
+
+  function hideCamera() {
+    if (!cameraState.active) return;
+    cameraState.active = false;
+
+    if (cameraState.refreshTimer) {
+      clearInterval(cameraState.refreshTimer);
+      cameraState.refreshTimer = null;
+    }
+
+    if (DOM.newsCard) DOM.newsCard.classList.remove('camera-active');
+    if (DOM.camera) DOM.camera.hidden = true;
+    if (DOM.news) DOM.news.hidden = false;
+    setText(DOM.newsLabel, 'Nieuws');
+
+    getNews();
+  }
+
+  async function getCameraState() {
+    try {
+      const resp = await fetch(CONFIG.homeyApi);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const payload = await resp.json();
+      const data = payload?.data?.home || {};
+      const wantVisible = parseCameraFlag(data.camera_zichtbaar);
+
+      if (!wantVisible) {
+        // Vlag staat uit -> latch resetten zodat de camera later weer mag verschijnen
+        cameraState.expiredLatch = false;
+        hideCamera();
+        return;
+      }
+
+      // Vangnet: te lang aan -> verbergen en latchen tot de vlag weer uit is gegaan
+      if (cameraState.active && Date.now() - cameraState.startedAt > CAMERA_MAX_MS) {
+        cameraState.expiredLatch = true;
+        hideCamera();
+        return;
+      }
+
+      if (!cameraState.expiredLatch) {
+        showCamera();
+      }
+    } catch (err) {
+      console.error('Camera state fetch error', err);
+      // Bij fout: huidige toestand vasthouden (niet knipperen)
+    }
+  }
+
+  function initCameraFeed() {
+    if (!DOM.cameraFeed) return;
+    DOM.cameraFeed.addEventListener('error', () => {
+      if (DOM.cameraStatus) DOM.cameraStatus.hidden = false;
+    });
+    DOM.cameraFeed.addEventListener('load', () => {
+      if (DOM.cameraStatus) DOM.cameraStatus.hidden = true;
+    });
+  }
+
   // --- Init ---
 
   function init() {
+    initCameraFeed();
+
     updateTime();
     getWeather();
     getNews();
     getHomeyStatus();
+    getCameraState();
 
     setInterval(updateTime, INTERVALS.clock);
     setInterval(getWeather, INTERVALS.weather);
     setInterval(getNews, INTERVALS.news);
     setInterval(getHomeyStatus, INTERVALS.homey);
+    setInterval(getCameraState, INTERVALS.cameraPoll);
   }
 
   init();
