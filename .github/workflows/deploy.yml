@@ -25,6 +25,15 @@ jobs:
           echo '{"ipv6": false}' | sudo tee /etc/docker/daemon.json
           sudo systemctl reload docker
 
+      - name: Schrijf .env uit secret
+        run: |
+          # Ruim een eventueel per ongeluk aangemaakte .env-map op, zodat
+          # de bind-mount (./.env:/app/camera.env) altijd een bestand vindt.
+          rm -rf .env
+          cat > .env <<'CAMERA_ENV_EOF'
+          ${{ secrets.CAMERA_ENV }}
+          CAMERA_ENV_EOF
+
       - name: Deploy stack
         run: docker compose up -d --build --remove-orphans
 
