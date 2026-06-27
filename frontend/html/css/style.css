@@ -218,6 +218,24 @@ body {
   line-height: 1.7;
 }
 
+/* Verouderde meting: temperatuur gedimd zodat 'ie niet meer als actueel leest. */
+.weather-temp.weather-stale {
+  color: var(--text-secondary);
+}
+
+.weather-updated {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 300;
+  letter-spacing: 0.3px;
+}
+
+/* Amber waarschuwing, in lijn met het warme accent uit het palet. */
+.weather-updated.is-stale {
+  color: #c4a24e;
+}
+
 /* Huis metrics */
 .metrics {
   display: grid;

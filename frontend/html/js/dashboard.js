@@ -17,11 +17,17 @@
   const INTERVALS = {
     clock: 1000,
     weather: 300000,
+    weatherRetry: 60000,
     news: 600000,
     homey: 60000,
     cameraPoll: 2000,
     cameraRefresh: 1000
   };
+
+  // Weerdata ouder dan dit tonen we zichtbaar als 'verouderd'. KNMI levert elke
+  // 10 min een nieuwe meting en we pollen elke 5 min, dus boven deze drempel
+  // hapert er echt iets (proxy/sleutel) in plaats van normale vertraging.
+  const WEATHER_STALE_MS = 40 * 60 * 1000;
 
   // Vangnet: verberg de camera als de vlag onverhoopt langer dan dit aan blijft
   // (iets ruimer dan Homey's 5 min auto-uit).
@@ -172,11 +178,23 @@
     const humidity = formatNumber(payload.humidity, 0, payload.humiditySuffix || '%');
     const wind = formatNumber(payload.wind, 1, payload.windSuffix || ' m/s');
 
+    // Leeftijd van de meting bepaalt of we 'verouderd' tonen. Zo bevriest de
+    // waarde nooit meer stil: blijft KNMI weg, dan loopt deze tijd op en zie je
+    // dat de temperatuur niet meer ververst wordt.
+    const updatedDate = payload.updatedAt ? new Date(payload.updatedAt) : null;
+    const validDate = updatedDate && !Number.isNaN(updatedDate.getTime());
+    const ageMs = validDate ? Date.now() - updatedDate.getTime() : Infinity;
+    const stale = ageMs > WEATHER_STALE_MS;
+    const updatedText = validDate ? timeAgo(updatedDate) : 'onbekend';
+
     setHTML(DOM.weather, `
-      <div class="weather-temp">${temp}</div>
+      <div class="weather-temp${stale ? ' weather-stale' : ''}">${temp}</div>
       <div class="weather-detail">
         Luchtvochtigheid: ${humidity}<br>
         Wind: ${wind}
+      </div>
+      <div class="weather-updated${stale ? ' is-stale' : ''}">
+        ${stale ? '⚠ ' : ''}Bijgewerkt: ${updatedText}
       </div>
     `);
     return true;
@@ -233,6 +251,19 @@
 
   // --- Data fetching ---
 
+  // Na een mislukte ophaalpoging niet de volle 5 min wachten, maar snel opnieuw
+  // proberen zodat een tijdelijke hapering binnen ~1 min hersteld is. De guard
+  // zorgt dat er hooguit één retry tegelijk gepland staat.
+  let weatherRetryTimer = null;
+
+  function scheduleWeatherRetry() {
+    if (weatherRetryTimer) return;
+    weatherRetryTimer = setTimeout(() => {
+      weatherRetryTimer = null;
+      getWeather();
+    }, INTERVALS.weatherRetry);
+  }
+
   async function getWeather() {
     try {
       const cached = loadWeatherCache();
@@ -279,12 +310,20 @@
 
       saveWeatherCache(payload);
       renderWeather(payload);
+
+      // Gelukt: eventuele snelle retry annuleren, terug naar het normale ritme.
+      if (weatherRetryTimer) {
+        clearTimeout(weatherRetryTimer);
+        weatherRetryTimer = null;
+      }
     } catch (err) {
       console.error('Weather fetch error', err);
       const cached = loadWeatherCache();
       if (!renderWeather(cached, true)) {
         setHTML(DOM.weather, '<div class="loading">Weerdata wordt bijgewerkt</div>');
       }
+      // Snel opnieuw proberen i.p.v. 5 min stil blijven hangen.
+      scheduleWeatherRetry();
     }
   }
 
