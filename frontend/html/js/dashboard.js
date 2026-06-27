@@ -29,6 +29,13 @@
   // hapert er echt iets (proxy/sleutel) in plaats van normale vertraging.
   const WEATHER_STALE_MS = 40 * 60 * 1000;
 
+  // Harde grens per netwerk-call. Zonder timeout kan fetch() bij een half-open
+  // verbinding eindeloos blijven hangen; dan loopt het dashboard vast en komt
+  // het nooit meer vanzelf terug. Met AbortController breekt het netjes af en
+  // probeert de volgende tik (of de 'online'-trigger) gewoon opnieuw.
+  const REQUEST_TIMEOUT_MS = 10000;
+  const CAMERA_REQUEST_TIMEOUT_MS = 4000;
+
   // Vangnet: verberg de camera als de vlag onverhoopt langer dan dit aan blijft
   // (iets ruimer dan Homey's 5 min auto-uit).
   const CAMERA_MAX_MS = 360000;
@@ -79,6 +86,18 @@
       return '--';
     }
     return `${Number(value).toFixed(decimals)}${suffix}`;
+  }
+
+  // fetch met harde timeout: breekt een hangende request af zodat een volgende
+  // poging niet voor altijd geblokkeerd blijft.
+  async function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   function formatWeatherTimestamp(value) {
@@ -286,7 +305,7 @@
         datetime
       });
 
-      const resp = await fetch(url, useProxy ? {} : {
+      const resp = await fetchWithTimeout(url, useProxy ? {} : {
         headers: { Authorization: CONFIG.knmiApiKey }
       });
       if (!resp.ok) throw new Error(`KNMI HTTP ${resp.status}`);
@@ -327,10 +346,22 @@
     }
   }
 
+  // Zelfde snelle-retry-aanpak als bij het weer: na een fout niet de volle
+  // 10 min wachten, maar binnen ~1 min opnieuw proberen.
+  let newsRetryTimer = null;
+
+  function scheduleNewsRetry() {
+    if (newsRetryTimer) return;
+    newsRetryTimer = setTimeout(() => {
+      newsRetryTimer = null;
+      getNews();
+    }, INTERVALS.weatherRetry);
+  }
+
   async function getNews() {
     try {
       const url = `${CONFIG.newsApi}?rss_url=${encodeURIComponent(CONFIG.newsFeed)}`;
-      const resp = await fetch(url);
+      const resp = await fetchWithTimeout(url);
       const data = await resp.json();
       if (!data?.items || data.items.length === 0) {
         setHTML(DOM.news, '<div class="loading">Geen nieuws beschikbaar</div>');
@@ -349,15 +380,21 @@
         .join('');
 
       setHTML(DOM.news, items);
+
+      if (newsRetryTimer) {
+        clearTimeout(newsRetryTimer);
+        newsRetryTimer = null;
+      }
     } catch (err) {
       console.error('News fetch error', err);
       setHTML(DOM.news, '<div class="loading">Kon nieuws niet laden</div>');
+      scheduleNewsRetry();
     }
   }
 
   async function getHomeyStatus() {
     try {
-      const resp = await fetch(CONFIG.homeyApi);
+      const resp = await fetchWithTimeout(CONFIG.homeyApi);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
       const payload = await resp.json();
@@ -409,7 +446,9 @@
     refreshTimer: null,
     startedAt: 0,
     // Vangnet getriggerd: wacht tot de vlag weer 'uit' is voordat we opnieuw tonen
-    expiredLatch: false
+    expiredLatch: false,
+    // Voorkomt dat de 2s-poll zich opstapelt als een vorige call nog loopt.
+    fetching: false
   };
 
   function parseCameraFlag(value) {
@@ -460,8 +499,11 @@
   }
 
   async function getCameraState() {
+    // Overlap-guard: hangt een vorige poll nog, sla deze tik over.
+    if (cameraState.fetching) return;
+    cameraState.fetching = true;
     try {
-      const resp = await fetch(CONFIG.homeyApi);
+      const resp = await fetchWithTimeout(CONFIG.homeyApi, {}, CAMERA_REQUEST_TIMEOUT_MS);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
       const payload = await resp.json();
@@ -488,6 +530,8 @@
     } catch (err) {
       console.error('Camera state fetch error', err);
       // Bij fout: huidige toestand vasthouden (niet knipperen)
+    } finally {
+      cameraState.fetching = false;
     }
   }
 
@@ -503,20 +547,31 @@
 
   // --- Init ---
 
-  function init() {
-    initCameraFeed();
-
-    updateTime();
+  // Alle databronnen in één keer verversen. Gebruikt bij start én zodra de
+  // verbinding terugkomt, zodat het dashboard niet op de volgende interval-tik
+  // hoeft te wachten (nieuws is bv. 10 min) om weer actueel te worden.
+  function refreshAllData() {
     getWeather();
     getNews();
     getHomeyStatus();
     getCameraState();
+  }
+
+  function init() {
+    initCameraFeed();
+
+    updateTime();
+    refreshAllData();
 
     setInterval(updateTime, INTERVALS.clock);
     setInterval(getWeather, INTERVALS.weather);
     setInterval(getNews, INTERVALS.news);
     setInterval(getHomeyStatus, INTERVALS.homey);
     setInterval(getCameraState, INTERVALS.cameraPoll);
+
+    // Verbinding terug -> meteen alles opnieuw ophalen i.p.v. wachten op de
+    // volgende tik. Dit is de kern van "komt automatisch terug na internetdip".
+    window.addEventListener('online', refreshAllData);
   }
 
   init();
