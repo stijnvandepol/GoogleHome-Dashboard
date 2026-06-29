@@ -17,7 +17,7 @@ Het project bestaat uit een eenvoudige statische frontend (`frontend/html/index.
 - `rtsp-server` (Mediamtx) voor RTSP/RTMP streaming
 - `pagecaster` voor het renderen van de webpagina naar een stream (bijv. voor casting)
 
-Frontend haalt live weer (Open-Meteo), Homey data (temperatuur binnen, setpoint, stroom/gas vandaag), nieuws (NOS RSS via rss2json) en optioneel uptime/feestdagen binnen. Alle gebruikte bronnen zijn gratis/keyless en poll-based, waardoor 1–3 FPS streaming ruim voldoende is.
+Frontend haalt live weer (KNMI EDR API — vereist een gratis API-key, zie Configuratie), Homey data (temperatuur binnen, setpoint, stroom/gas vandaag), nieuws (NOS RSS via rss2json) en op knopdruk een live camerabeeld binnen. De bronnen zijn poll-based, waardoor 1–3 FPS streaming ruim voldoende is.
 
 ## Architectuur & Services
 ```
@@ -29,7 +29,8 @@ Frontend haalt live weer (Open-Meteo), Homey data (temperatuur binnen, setpoint,
 
 ### docker-compose.yml / Streaming pipeline
 Belangrijkste services:
-- `frontend`: bouwt uit `frontend/Dockerfile` en serveert de statische HTML op poort 8080 (intern Nginx/HTTP op 80)
+- `frontend`: bouwt uit `frontend/Dockerfile` en serveert de statische HTML op poort 8080 (intern Nginx/HTTP op 80). Nginx proxyt ook `/knmi` (injecteert de `KNMI_API_KEY`) en `/camera`.
+- `camera-proxy`: kleine Python-sidecar die de camera-snapshot met Digest-auth ophaalt en inlogvrij aan de browser teruggeeft (credentials blijven server-side, uit `.env`)
 - `pagecaster`: headless chromium dat `http://frontend` opent en de pagina als video rendert (standaard 3 FPS)
 - `rtsp-server`: Mediamtx image dat de RTMP/RTSP stream van pagecaster beschikbaar maakt voor andere systemen (bijv. Scrypted)
 
@@ -83,7 +84,11 @@ docker compose pull
 ```
 
 ## Configuratie & Variabelen
-`frontend/html/config.example.js` bevat locatie instellingen (en optioneel Uptime Kuma). Voor Homey data staat het endpoint momenteel hardcoded in `index.html` (`HOMEY_API`), maar je kunt dit eenvoudig omzetten naar een config entry.
+De omgevings-/geheime waarden staan in een `.env`-bestand naast `docker-compose.yml` (zie `.env.example` voor het sjabloon; `.env` zelf staat in `.gitignore`):
+- `KNMI_API_KEY` — **vereist** voor de weerdata. `docker-compose.yml` geeft deze door aan de frontend-container, waar nginx hem in de `/knmi`-proxy injecteert. Is hij leeg of verlopen, dan blijft de buitentemperatuur op de laatst bekende waarde hangen (het "Bijgewerkt"-label onder de temperatuur kleurt dan amber).
+- `CAMERA_SNAPSHOT_URL`, `CAMERA_USER`, `CAMERA_PASS` — voor de camera-proxy sidecar.
+
+De Homey-endpoint en het KNMI-station staan hardcoded in `frontend/html/js/dashboard.js` (`CONFIG.homeyApi` / `CONFIG.knmiStationId`).
 
 `pagecaster` env vars in `docker-compose.yml`:
 - `WEB_URL=http://frontend` (interne service naam)

@@ -100,19 +100,6 @@
     }
   }
 
-  function formatWeatherTimestamp(value) {
-    if (!value) return 'Onbekend';
-    const date = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(date.getTime())) return 'Onbekend';
-    return date.toLocaleString('nl-NL', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'Europe/Amsterdam'
-    });
-  }
-
   function timeAgo(date) {
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
     if (seconds < 60) return 'Zojuist';
